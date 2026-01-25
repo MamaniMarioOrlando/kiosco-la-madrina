@@ -16,12 +16,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Endpoints for user registration and login")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
@@ -35,6 +38,7 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    @Operation(summary = "Sign in user", description = "Authenticates a user and returns a JWT token.")
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody AuthRequestDTO loginRequest) {
 
@@ -56,18 +60,25 @@ public class AuthController {
                 roles));
     }
 
+    @Operation(summary = "Register user", description = "Registers a new user with standard permissions.")
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDTO signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.username())) {
             return ResponseEntity.badRequest().body("Error: Username is already taken!");
         }
 
-        // Create new user's account with default Role EMPLOYEE
+        // Determine user Role
+        Role userRole = Role.EMPLOYEE;
+        if (signUpRequest.role() != null && signUpRequest.role().contains("admin")) {
+            userRole = Role.ADMIN;
+        }
+
+        // Create new user's account
         User user = User.builder()
                 .username(signUpRequest.username())
                 .email(signUpRequest.email())
                 .password(encoder.encode(signUpRequest.password()))
-                .role(Role.EMPLOYEE)
+                .role(userRole)
                 .build();
 
         userRepository.save(user);
