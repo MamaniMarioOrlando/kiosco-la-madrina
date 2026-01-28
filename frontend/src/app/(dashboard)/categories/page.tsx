@@ -1,0 +1,178 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Plus, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+interface Category {
+    id: number;
+    name: string;
+    description: string;
+}
+
+export default function CategoriesPage() {
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    // Form state
+    const [isAdding, setIsAdding] = useState(false);
+    const [newName, setNewName] = useState('');
+    const [newDesc, setNewDesc] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            setIsAdmin(user.roles?.some((r: string) => r.toLowerCase().includes('admin')));
+        }
+        fetchCategories();
+    }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const response = await api.get('/categories');
+            setCategories(response.data);
+        } catch (err: any) {
+            setError('Error al cargar categorías');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddCategory = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            await api.post('/categories', {
+                name: newName,
+                description: newDesc
+            });
+            setNewName('');
+            setNewDesc('');
+            setIsAdding(false);
+            fetchCategories();
+        } catch (err: any) {
+            console.error('Detalles del error:', err);
+            const status = err.response?.status;
+            const message = err.response?.data?.message || err.response?.data || err.message;
+
+            if (status === 403) {
+                alert('Error 403: No tienes permisos de ADMIN (Forbidden).');
+            } else if (status === 401) {
+                alert('Error 401: No autorizado. Sesión inválida o expirada.');
+            } else {
+                alert(`Error al crear categoría: ${status || '?'}. ${message}`);
+            }
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex h-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-900">Categorías</h2>
+                    <p className="text-slate-500">Gestiona las categorías de tus productos.</p>
+                </div>
+                {isAdmin && !isAdding && (
+                    <Button onClick={() => setIsAdding(true)} className="bg-orange-600 hover:bg-orange-700">
+                        <Plus className="mr-2 h-4 w-4" /> Nueva Categoría
+                    </Button>
+                )}
+            </div>
+
+            {isAdmin && isAdding && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white p-6 rounded-xl shadow-sm border border-orange-100"
+                >
+                    <form onSubmit={handleAddCategory} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Nombre</Label>
+                            <Input
+                                id="name"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                placeholder="Ej: Bebidas"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="desc">Descripción</Label>
+                            <Input
+                                id="desc"
+                                value={newDesc}
+                                onChange={(e) => setNewDesc(e.target.value)}
+                                placeholder="Opcional"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <Button type="submit" disabled={submitting}>
+                                {submitting ? 'Guardando...' : 'Guardar'}
+                            </Button>
+                            <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
+                                Cancelar
+                            </Button>
+                        </div>
+                    </form>
+                </motion.div>
+            )}
+
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="bg-slate-50">
+                            <TableHead className="w-16">ID</TableHead>
+                            <TableHead>Nombre</TableHead>
+                            <TableHead>Descripción</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {categories.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-center py-10 text-slate-500">
+                                    No hay categorías registradas.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            categories.map((category) => (
+                                <TableRow key={category.id}>
+                                    <TableCell className="font-mono text-slate-500">#{category.id}</TableCell>
+                                    <TableCell className="font-medium">{category.name}</TableCell>
+                                    <TableCell className="text-slate-600">{category.description || '-'}</TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    );
+}
