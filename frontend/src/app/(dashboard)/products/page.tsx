@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Loader2, Package, Barcode, Trash2, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '@/lib/utils';
 
 interface Product {
     id: number;
@@ -279,7 +280,7 @@ export default function ProductsPage() {
                             </TableRow>
                         ) : (
                             products.map((p) => (
-                                <TableRow key={p.id}>
+                                <TableRow key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-default">
                                     <TableCell>
                                         <div className="font-medium">{p.name}</div>
                                         <div className="text-xs text-slate-500 font-mono flex items-center gap-1">
@@ -291,8 +292,8 @@ export default function ProductsPage() {
                                             {p.categoryName}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="font-semibold text-slate-900">
-                                        ${p.price.toFixed(2)}
+                                    <TableCell className="font-semibold text-slate-900 dark:text-white">
+                                        {formatCurrency(p.price)}
                                     </TableCell>
                                     <TableCell>
                                         <span className={p.stockQuantity <= 5 ? "text-red-600 font-bold" : "text-slate-600"}>

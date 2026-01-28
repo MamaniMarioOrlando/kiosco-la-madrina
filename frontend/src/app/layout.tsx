@@ -3,6 +3,8 @@ import { Outfit } from "next/font/google"; // Changed Inter to Outfit
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 // Initialize the Outfit font
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -17,9 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body className={cn(outfit.className, "min-h-screen bg-background font-sans antialiased")}>
-        {children}
+    <html lang="es" suppressHydrationWarning>
+      <body className={cn(outfit.className, "min-h-screen antialiased transition-colors duration-300")}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

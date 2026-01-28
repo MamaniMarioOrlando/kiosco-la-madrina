@@ -13,6 +13,7 @@ import {
 import { Loader2, History, User, Calendar, Eye, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/utils';
 
 interface SaleDetail {
     productName: string;
@@ -87,11 +88,11 @@ export default function SalesHistoryPage() {
                             </TableRow>
                         ) : (
                             sales.map((sale) => (
-                                <TableRow key={sale.id}>
+                                <TableRow key={sale.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-default">
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <Calendar className="h-4 w-4 text-slate-400" />
-                                            {new Date(sale.dateTime).toLocaleString()}
+                                            {new Date(sale.dateTime).toLocaleString('es-AR')}
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -100,15 +101,15 @@ export default function SalesHistoryPage() {
                                             <span className="font-medium">{sale.username}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="font-bold text-slate-900">
-                                        ${sale.totalAmount.toFixed(2)}
+                                    <TableCell className="font-bold text-slate-900 dark:text-white text-lg">
+                                        {formatCurrency(sale.totalAmount)}
                                     </TableCell>
                                     <TableCell>
                                         <Button
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setSelectedSale(sale)}
-                                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/20"
                                         >
                                             <Eye className="h-4 w-4 mr-1" /> Detalles
                                         </Button>
@@ -128,16 +129,20 @@ export default function SalesHistoryPage() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
+                            className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
                         >
-                            <div className="p-6 border-b flex items-center justify-between bg-slate-900 text-white">
+                            <div className="p-6 border-b dark:border-slate-800 flex items-center justify-between bg-slate-900 text-white">
                                 <div>
                                     <h3 className="text-xl font-bold">Venta #{selectedSale.id}</h3>
                                     <p className="text-sm text-slate-400">
-                                        {new Date(selectedSale.dateTime).toLocaleString()}
+                                        {new Date(selectedSale.dateTime).toLocaleString('es-AR')}
                                     </p>
                                 </div>
-                                <Button variant="ghost" onClick={() => setSelectedSale(null)} className="text-white hover:bg-slate-800">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setSelectedSale(null)}
+                                    className="text-white hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+                                >
                                     <X className="h-6 w-6" />
                                 </Button>
                             </div>
@@ -145,7 +150,7 @@ export default function SalesHistoryPage() {
                             <div className="p-6">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow>
+                                        <TableRow className="dark:border-slate-800">
                                             <TableHead>Producto</TableHead>
                                             <TableHead className="text-center">Cant.</TableHead>
                                             <TableHead className="text-right">Unitario</TableHead>
@@ -154,24 +159,25 @@ export default function SalesHistoryPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {selectedSale.details.map((detail, idx) => (
-                                            <TableRow key={idx}>
-                                                <TableCell className="font-medium">{detail.productName}</TableCell>
-                                                <TableCell className="text-center">{detail.quantity}</TableCell>
-                                                <TableCell className="text-right">${detail.unitPrice.toFixed(2)}</TableCell>
-                                                <TableCell className="text-right font-bold">${detail.subtotal.toFixed(2)}</TableCell>
+                                            <TableRow key={idx} className="dark:border-slate-800">
+                                                <TableCell className="font-medium dark:text-slate-300">{detail.productName}</TableCell>
+                                                <TableCell className="text-center dark:text-slate-300">{detail.quantity}</TableCell>
+                                                <TableCell className="text-right dark:text-slate-300">{formatCurrency(detail.unitPrice)}</TableCell>
+                                                <TableCell className="text-right font-bold dark:text-white">{formatCurrency(detail.subtotal)}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
 
-                                <div className="mt-6 flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                    <span className="text-slate-600 font-medium">Vendedor: {selectedSale.username}</span>
+                                <div className="mt-6 flex justify-between items-center bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <span className="text-slate-600 dark:text-slate-400 font-medium">Vendedor: {selectedSale.username}</span>
                                     <div className="text-right">
-                                        <div className="text-sm text-slate-500">Total Venta</div>
-                                        <div className="text-3xl font-black text-slate-900">${selectedSale.totalAmount.toFixed(2)}</div>
+                                        <div className="text-sm text-slate-500 dark:text-slate-500">Total Venta</div>
+                                        <div className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(selectedSale.totalAmount)}</div>
                                     </div>
                                 </div>
                             </div>
+
                         </motion.div>
                     </div>
                 )}

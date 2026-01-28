@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import {
     Table,
     TableBody,
@@ -164,7 +164,7 @@ export default function SalesPage() {
                                         <div className="text-sm text-slate-500 font-mono italic">{p.barcode}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-lg font-bold text-orange-600">${p.price.toFixed(2)}</div>
+                                        <div className="text-lg font-bold text-orange-600 dark:text-orange-400">{formatCurrency(p.price)}</div>
                                         <div className="text-xs text-slate-500">{p.stockQuantity} disponibles</div>
                                     </div>
                                 </div>
@@ -214,11 +214,11 @@ export default function SalesPage() {
                                                 <Minus className="h-3 w-3" />
                                             </button>
                                             <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
-                                            <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:bg-slate-100 rounded text-slate-600">
+                                            <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-400">
                                                 <Plus className="h-3 w-3" />
                                             </button>
                                         </div>
-                                        <span className="font-bold text-slate-900">${(item.price * item.quantity).toFixed(2)}</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
                                     </div>
                                 </motion.div>
                             ))
@@ -226,10 +226,10 @@ export default function SalesPage() {
                     </AnimatePresence>
                 </div>
 
-                <div className="p-4 bg-slate-50 border-t space-y-4">
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 space-y-4">
                     <div className="flex justify-between items-center text-lg">
-                        <span className="text-slate-600">Total:</span>
-                        <span className="text-3xl font-black text-slate-900">${total.toFixed(2)}</span>
+                        <span className="text-slate-600 dark:text-slate-400">Total:</span>
+                        <span className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(total)}</span>
                     </div>
 
                     {cart.length > 0 && (
@@ -254,9 +254,9 @@ export default function SalesPage() {
                                     <span className="text-slate-600 font-medium">Vuelto:</span>
                                     <span className={cn(
                                         "text-xl font-bold",
-                                        change < 0 ? "text-red-500" : "text-green-600"
+                                        change < 0 ? "text-red-500" : "text-green-600 dark:text-green-400"
                                     )}>
-                                        ${change.toFixed(2)}
+                                        {formatCurrency(change)}
                                     </span>
                                 </motion.div>
                             )}

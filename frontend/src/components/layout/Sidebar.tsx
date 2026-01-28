@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import api from '@/lib/api';
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
@@ -31,13 +32,25 @@ export function Sidebar({ className }: { className?: string }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const [user, setUser] = useState<{ roles: string[] } | null>(null);
+    const [hasLowStock, setHasLowStock] = useState(false);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
         if (userData) {
             setUser(JSON.parse(userData));
         }
+        checkLowStock();
     }, []);
+
+    const checkLowStock = async () => {
+        try {
+            const response = await api.get('/products');
+            const low = response.data.some((p: any) => p.stockQuantity < 5);
+            setHasLowStock(low);
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const isAdmin = user?.roles?.some(r => r.toLowerCase().includes('admin'));
 
@@ -80,7 +93,15 @@ export function Sidebar({ className }: { className?: string }) {
                                         : "text-slate-400 hover:bg-slate-800 hover:text-white"
                                 )}
                             >
-                                <Icon className="h-5 w-5" />
+                                <div className="relative">
+                                    <Icon className="h-5 w-5" />
+                                    {hasLowStock && (item.label === 'Dashboard' || item.label === 'Productos') && (
+                                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                                        </span>
+                                    )}
+                                </div>
                                 {item.label}
                             </Link>
                         );
