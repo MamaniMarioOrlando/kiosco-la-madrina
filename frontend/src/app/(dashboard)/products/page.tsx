@@ -260,15 +260,15 @@ export default function ProductsPage() {
                 )}
             </AnimatePresence>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-50">
-                            <TableHead>Producto</TableHead>
-                            <TableHead>Categoría</TableHead>
-                            <TableHead>Precio</TableHead>
-                            <TableHead>Stock</TableHead>
-                            {isAdmin && <TableHead className="w-32">Acciones</TableHead>}
+                        <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800">
+                            <TableHead className="dark:text-slate-400">Producto</TableHead>
+                            <TableHead className="dark:text-slate-400">Categoría</TableHead>
+                            <TableHead className="dark:text-slate-400">Precio</TableHead>
+                            <TableHead className="dark:text-slate-400">Stock</TableHead>
+                            {isAdmin && <TableHead className="w-32 dark:text-slate-400">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -282,13 +282,13 @@ export default function ProductsPage() {
                             products.map((p) => (
                                 <TableRow key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-default">
                                     <TableCell>
-                                        <div className="font-medium">{p.name}</div>
-                                        <div className="text-xs text-slate-500 font-mono flex items-center gap-1">
+                                        <div className="font-medium dark:text-white">{p.name}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
                                             <Barcode className="h-3 w-3" /> {p.barcode}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                                        <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 border dark:border-slate-700">
                                             {p.categoryName}
                                         </span>
                                     </TableCell>
@@ -296,7 +296,7 @@ export default function ProductsPage() {
                                         {formatCurrency(p.price)}
                                     </TableCell>
                                     <TableCell>
-                                        <span className={p.stockQuantity <= 5 ? "text-red-600 font-bold" : "text-slate-600"}>
+                                        <span className={p.stockQuantity <= 5 ? "text-red-600 dark:text-red-400 font-bold" : "text-slate-600 dark:text-slate-400"}>
                                             {p.stockQuantity} unid.
                                         </span>
                                     </TableCell>

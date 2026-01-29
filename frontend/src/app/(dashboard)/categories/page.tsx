@@ -145,28 +145,33 @@ export default function CategoriesPage() {
                 </motion.div>
             )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-50">
-                            <TableHead className="w-16">ID</TableHead>
-                            <TableHead>Nombre</TableHead>
-                            <TableHead>Descripción</TableHead>
+                        <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800">
+                            <TableHead className="dark:text-slate-400">Nombre</TableHead>
+                            <TableHead className="dark:text-slate-400">Descripción</TableHead>
+                            {isAdmin && <TableHead className="w-16 dark:text-slate-400">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {categories.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center py-10 text-slate-500">
+                                <TableCell colSpan={isAdmin ? 3 : 2} className="text-center py-10 text-slate-500">
                                     No hay categorías registradas.
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            categories.map((category) => (
-                                <TableRow key={category.id}>
-                                    <TableCell className="font-mono text-slate-500">#{category.id}</TableCell>
-                                    <TableCell className="font-medium">{category.name}</TableCell>
-                                    <TableCell className="text-slate-600">{category.description || '-'}</TableCell>
+                            categories.map((c) => (
+                                <TableRow key={c.id} className="dark:border-slate-800">
+                                    <TableCell className="font-bold text-slate-900 dark:text-white">{c.name}</TableCell>
+                                    <TableCell className="text-slate-600 dark:text-slate-400">{c.description || '-'}</TableCell>
+                                    {isAdmin && (
+                                        <TableCell>
+                                            {/* Add your action buttons here */}
+                                            {/* <Button variant="ghost" size="sm">Edit</Button> */}
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))
                         )}

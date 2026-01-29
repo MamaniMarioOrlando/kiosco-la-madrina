@@ -40,7 +40,11 @@ export function Sidebar({ className }: { className?: string }) {
             setUser(JSON.parse(userData));
         }
         checkLowStock();
-    }, []);
+
+        // Refresh status every 30 seconds
+        const interval = setInterval(checkLowStock, 30000);
+        return () => clearInterval(interval);
+    }, [pathname]);
 
     const checkLowStock = async () => {
         try {

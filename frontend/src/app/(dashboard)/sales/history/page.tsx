@@ -69,14 +69,14 @@ export default function SalesHistoryPage() {
                 <p className="text-slate-500">Revisa todas las transacciones realizadas.</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-50">
-                            <TableHead>Fecha y Hora</TableHead>
-                            <TableHead>Vendedor</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead className="w-24">Acciones</TableHead>
+                        <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800">
+                            <TableHead className="dark:text-slate-400">Fecha y Hora</TableHead>
+                            <TableHead className="dark:text-slate-400">Vendedor</TableHead>
+                            <TableHead className="dark:text-slate-400">Total</TableHead>
+                            <TableHead className="w-24 dark:text-slate-400">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -90,14 +90,14 @@ export default function SalesHistoryPage() {
                             sales.map((sale) => (
                                 <TableRow key={sale.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-default">
                                     <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="h-4 w-4 text-slate-400" />
+                                        <div className="flex items-center gap-2 dark:text-slate-300">
+                                            <Calendar className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                                             {new Date(sale.dateTime).toLocaleString('es-AR')}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <User className="h-4 w-4 text-slate-400" />
+                                        <div className="flex items-center gap-2 dark:text-slate-300">
+                                            <User className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                                             <span className="font-medium">{sale.username}</span>
                                         </div>
                                     </TableCell>
