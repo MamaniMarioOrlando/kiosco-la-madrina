@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { motion } from 'framer-motion';
 import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface Product {
   id: number;
@@ -85,6 +86,17 @@ export default function Home() {
       });
       setLowStockProducts(lowStock);
       setTopSellers(sortedSellers);
+
+      // Notify low stock
+      if (lowStock.length > 0) {
+        toast.error(`Atención: Stock Bajo`, {
+          id: 'low-stock-alert',
+          description: lowStock.length === 1
+            ? `Hay 1 producto que necesita reposición.`
+            : `Hay ${lowStock.length} productos que necesitan reposición.`,
+          duration: 6000,
+        });
+      }
     } catch (err) {
       console.error('Error fetching dashboard stats', err);
     } finally {

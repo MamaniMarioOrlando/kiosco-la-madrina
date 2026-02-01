@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "Sistema de gestión para Kiosco La Madrina",
 };
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,6 +25,7 @@ export default function RootLayout({
       <body className={cn(outfit.className, "min-h-screen antialiased transition-colors duration-300")}>
         <ThemeProvider>
           {children}
+          <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
     </html>

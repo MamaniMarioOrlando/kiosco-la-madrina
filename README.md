@@ -75,7 +75,7 @@ El proyecto utiliza **PostgreSQL 16**. Para facilitar la configuración, se incl
 ### Ejecución con Docker (Recomendado)
 Para levantar la base de datos rápidamente:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 Esto creará un contenedor llamado `kiosco-postgres` con:
 - **DB**: `kiosco_db`
@@ -94,7 +94,7 @@ Esto creará un contenedor llamado `kiosco-postgres` con:
 
 ### 2. Levantar la Base de Datos
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. Ejecutar el Backend

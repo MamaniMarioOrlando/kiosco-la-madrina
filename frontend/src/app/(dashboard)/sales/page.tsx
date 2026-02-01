@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn, formatCurrency } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
     Table,
     TableBody,
@@ -115,7 +116,21 @@ export default function SalesPage() {
             setSaleSuccess(true);
             setCart([]);
             setAmountPaid('');
-            fetchProducts();
+
+            // Check for low stock after sale
+            const updatedProductsRes = await api.get('/products');
+            const updatedProducts: Product[] = updatedProductsRes.data;
+            setAllProducts(updatedProducts);
+
+            updatedProducts.forEach(p => {
+                if (p.stockQuantity < 5) {
+                    toast.warning(`Stock bajo: ${p.name}`, {
+                        description: `Quedan solo ${p.stockQuantity} unidades.`,
+                        duration: 5000,
+                    });
+                }
+            });
+
             setTimeout(() => setSaleSuccess(false), 3000);
         } catch (err: any) {
             console.error(err);
