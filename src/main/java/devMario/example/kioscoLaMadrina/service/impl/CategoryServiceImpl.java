@@ -29,4 +29,18 @@ public class CategoryServiceImpl implements CategoryService {
         Category cat = categoryMapper.toEntity(dto);
         return categoryMapper.toDTO(categoryRepository.save(cat));
     }
+
+    @Override
+    public CategoryDTO update(Long id, CategoryDTO dto) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        category.setName(dto.name());
+        category.setDescription(dto.description());
+        return categoryMapper.toDTO(categoryRepository.save(category));
+    }
+
+    @Override
+    public void delete(Long id) {
+        categoryRepository.deleteById(id);
+    }
 }

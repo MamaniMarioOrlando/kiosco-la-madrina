@@ -13,7 +13,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Pencil, Trash2, X, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Category {
@@ -32,6 +32,11 @@ export default function CategoriesPage() {
     const [newName, setNewName] = useState('');
     const [newDesc, setNewDesc] = useState('');
     const [submitting, setSubmitting] = useState(false);
+
+    // Edit state
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editName, setEditName] = useState('');
+    const [editDesc, setEditDesc] = useState('');
 
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -80,6 +85,41 @@ export default function CategoriesPage() {
             } else {
                 alert(`Error al crear categoría: ${status || '?'}. ${message}`);
             }
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDeleteCategory = async (id: number) => {
+        if (!confirm('¿Estás seguro de eliminar esta categoría? Se eliminarán los productos asociados.')) return;
+
+        try {
+            await api.delete(`/categories/${id}`);
+            fetchCategories();
+        } catch (err: any) {
+            console.error(err);
+            alert('Error al eliminar la categoría');
+        }
+    };
+
+    const handleEditClick = (category: Category) => {
+        setEditingId(category.id);
+        setEditName(category.name);
+        setEditDesc(category.description || '');
+    };
+
+    const handleUpdateCategory = async (id: number) => {
+        setSubmitting(true);
+        try {
+            await api.put(`/categories/${id}`, {
+                name: editName,
+                description: editDesc
+            });
+            setEditingId(null);
+            fetchCategories();
+        } catch (err: any) {
+            console.error(err);
+            alert('Error al actualizar la categoría');
         } finally {
             setSubmitting(false);
         }
@@ -164,12 +204,43 @@ export default function CategoriesPage() {
                         ) : (
                             categories.map((c) => (
                                 <TableRow key={c.id} className="dark:border-slate-800">
-                                    <TableCell className="font-bold text-slate-900 dark:text-white">{c.name}</TableCell>
-                                    <TableCell className="text-slate-600 dark:text-slate-400">{c.description || '-'}</TableCell>
+                                    <TableCell className="font-bold text-slate-900 dark:text-white">
+                                        {editingId === c.id ? (
+                                            <Input value={editName} onChange={(e) => setEditName(e.target.value)} size={1} className="h-8 font-bold" />
+                                        ) : (
+                                            c.name
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-slate-600 dark:text-slate-400">
+                                        {editingId === c.id ? (
+                                            <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} size={1} className="h-8" />
+                                        ) : (
+                                            c.description || '-'
+                                        )}
+                                    </TableCell>
                                     {isAdmin && (
                                         <TableCell>
-                                            {/* Add your action buttons here */}
-                                            {/* <Button variant="ghost" size="sm">Edit</Button> */}
+                                            <div className="flex gap-2">
+                                                {editingId === c.id ? (
+                                                    <>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleUpdateCategory(c.id)} className="text-green-600 p-1 h-8 w-8">
+                                                            <Check className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="sm" onClick={() => setEditingId(null)} className="text-red-600 p-1 h-8 w-8">
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(c)} className="text-blue-600 p-1 h-8 w-8">
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(c.id)} className="text-red-600 p-1 h-8 w-8">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </div>
                                         </TableCell>
                                     )}
                                 </TableRow>

@@ -30,4 +30,18 @@ public class CategoryController {
     public CategoryDTO create(@Valid @RequestBody CategoryDTO dto) {
         return categoryService.create(dto);
     }
+
+    @Operation(summary = "Update category", description = "Updates an existing category. Requires ADMIN role.")
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public CategoryDTO update(@PathVariable Long id, @Valid @RequestBody CategoryDTO dto) {
+        return categoryService.update(id, dto);
+    }
+
+    @Operation(summary = "Delete category", description = "Deletes a category. Requires ADMIN role.")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public void delete(@PathVariable Long id) {
+        categoryService.delete(id);
+    }
 }

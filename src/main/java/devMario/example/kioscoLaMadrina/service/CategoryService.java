@@ -7,4 +7,8 @@ public interface CategoryService {
     List<CategoryDTO> findAll();
 
     CategoryDTO create(CategoryDTO dto);
+
+    CategoryDTO update(Long id, CategoryDTO dto);
+
+    void delete(Long id);
 }
