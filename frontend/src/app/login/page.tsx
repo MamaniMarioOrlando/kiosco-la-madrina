@@ -29,10 +29,10 @@ export default function LoginPage() {
                 password,
             });
 
-            const { token, roles, username: user } = response.data;
+            const { token, roles, username: user, id, avatarUrl } = response.data;
 
             localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ username: user, roles }));
+            localStorage.setItem('user', JSON.stringify({ username: user, roles, id, avatarUrl }));
 
             router.push('/');
         } catch (err: any) {

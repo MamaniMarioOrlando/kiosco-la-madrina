@@ -28,6 +28,9 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Column(columnDefinition = "TEXT")
+    private String avatarUrl;
+
     @Builder.Default
     private boolean active = true;
 }

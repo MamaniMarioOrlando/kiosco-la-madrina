@@ -8,8 +8,9 @@ public record JwtResponseDTO(
         Long id,
         String username,
         String email,
+        String avatarUrl,
         List<String> roles) {
-    public JwtResponseDTO(String accessToken, Long id, String username, String email, List<String> roles) {
-        this(accessToken, "Bearer", id, username, email, roles);
+    public JwtResponseDTO(String accessToken, Long id, String username, String email, String avatarUrl, List<String> roles) {
+        this(accessToken, "Bearer", id, username, email, avatarUrl, roles);
     }
 }
