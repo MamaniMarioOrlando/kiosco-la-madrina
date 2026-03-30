@@ -1,5 +1,6 @@
 package devMario.example.kioscoLaMadrina.controller;
 
+import devMario.example.kioscoLaMadrina.exception.ResourceNotFoundException;
 import devMario.example.kioscoLaMadrina.model.User;
 import devMario.example.kioscoLaMadrina.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -23,14 +23,13 @@ public class UserController {
     @Operation(summary = "Update user avatar", description = "Updates a user's avatar image via base64 string.")
     @PatchMapping("/{id}/avatar")
     public ResponseEntity<?> updateAvatar(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-        Optional<User> userOpt = userRepository.findById(id);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            String avatarUrl = payload.get("avatarUrl");
-            user.setAvatarUrl(avatarUrl);
-            userRepository.save(user);
-            return ResponseEntity.ok("Avatar updated successfully");
-        }
-        return ResponseEntity.notFound().build();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario con el ID especificado"));
+                
+        String avatarUrl = payload.get("avatarUrl");
+        user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+        
+        return ResponseEntity.ok("Avatar updated successfully");
     }
 }
