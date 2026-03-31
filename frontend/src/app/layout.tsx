@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={cn(outfit.className, "min-h-screen antialiased transition-colors duration-300")}>
         <ThemeProvider>
           {children}
-          <Toaster position="top-right" richColors />
+          <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>
     </html>

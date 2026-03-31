@@ -122,14 +122,14 @@ export default function SalesPage() {
             const updatedProducts: Product[] = updatedProductsRes.data;
             setAllProducts(updatedProducts);
 
-            updatedProducts.forEach(p => {
-                if (p.stockQuantity < 5) {
-                    toast.warning(`Stock bajo: ${p.name}`, {
-                        description: `Quedan solo ${p.stockQuantity} unidades.`,
-                        duration: 5000,
-                    });
-                }
-            });
+            const lowStockCount = updatedProducts.filter(p => p.stockQuantity < 5).length;
+            if (lowStockCount > 0) {
+                toast.warning(`Atención: Stock Bajo`, {
+                    id: 'low-stock-alert', // This ID prevents duplicate toasts from stacking
+                    description: `Revisa el panel, hay ${lowStockCount} productos que necesitan reposición.`,
+                    duration: 5000,
+                });
+            }
 
             setTimeout(() => setSaleSuccess(false), 3000);
         } catch (err: any) {

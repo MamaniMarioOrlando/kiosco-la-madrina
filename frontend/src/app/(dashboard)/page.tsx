@@ -4,15 +4,18 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { motion } from 'framer-motion';
-import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign } from 'lucide-react';
+import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface Product {
   id: number;
+  barcode: string;
   name: string;
-  stockQuantity: number;
   price: number;
+  stockQuantity: number;
+  categoryId: number;
+  categoryName?: string;
 }
 
 interface SaleDetail {
@@ -36,12 +39,59 @@ export default function Home() {
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
   const [topSellers, setTopSellers] = useState<{ name: string, quantity: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [editStockValue, setEditStockValue] = useState<number>(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const handleUpdateStock = async (product: Product) => {
+    try {
+      if (editStockValue <= 0) {
+        toast.error('Debes ingresar al menos 1 unidad para la reposición');
+        return;
+      }
+      
+      const newTotalStock = product.stockQuantity + editStockValue;
+
+      const updatedProduct = {
+        ...product,
+        stockQuantity: newTotalStock
+      };
+
+      await api.put(`/products/${product.id}`, updatedProduct);
+      
+      setLowStockProducts(prev => 
+        prev.map(p => p.id === product.id ? { ...p, stockQuantity: newTotalStock } : p)
+            .filter(p => p.stockQuantity < 5)
+      );
+      
+      toast.success(`${product.name} reabastecido (+${editStockValue}). Total: ${newTotalStock}`);
+      setEditingProductId(null);
+      
+    } catch (err: any) {
+      console.error(err);
+      if (err.response?.status === 403) {
+        toast.error('No tienes permisos (Necesitas rol ADMIN)');
+      } else {
+        toast.error('Error al actualizar el stock');
+      }
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       router.push('/login');
     } else {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const parsed = JSON.parse(userData);
+          if (parsed.roles && parsed.roles.some((r: string) => r.toLowerCase().includes('admin'))) {
+            setIsAdmin(true);
+          }
+        } catch (e) {}
+      }
       fetchDashboardData();
     }
   }, [router]);
@@ -204,19 +254,58 @@ export default function Home() {
                   "flex items-center justify-between p-3 rounded-xl border transition-all",
                   p.stockQuantity < 3
                     ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 shadow-sm"
-                    : "bg-orange-50/50 dark:bg-orange-950/10 border-orange-100 dark:border-orange-900/20"
+                    : "bg-orange-50/50 dark:bg-orange-950/10 border-orange-100 dark:border-orange-900/20",
+                  editingProductId === p.id && "ring-2 ring-blue-500 border-blue-500 scale-[1.02]"
                 )}>
                   <div className="flex items-center gap-3">
-                    {p.stockQuantity < 3 && <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />}
+                    {p.stockQuantity < 3 && editingProductId !== p.id && <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />}
                     <div className="font-bold text-slate-800 dark:text-slate-200">{p.name}</div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Quedan:</span>
-                    <span className={cn(
-                      "px-2 py-0.5 rounded font-black text-sm",
-                      p.stockQuantity < 3 ? "bg-red-600 text-white" : "bg-orange-500 text-white"
-                    )}>{p.stockQuantity}</span>
-                  </div>
+                  
+                  {editingProductId === p.id ? (
+                    <div className="flex items-center gap-2">
+                       <span className="text-xs font-bold text-slate-400">+{p.stockQuantity}</span>
+                       <input 
+                         type="number"
+                         autoFocus
+                         min="1"
+                         placeholder="Cantidad a sumar.."
+                         className="w-32 px-2 py-1 text-sm font-bold border rounded-md dark:bg-slate-800 dark:text-white dark:border-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
+                         value={editStockValue || ''}
+                         onChange={(e) => setEditStockValue(parseInt(e.target.value) || 0)}
+                         onKeyDown={(e) => {
+                           if (e.key === 'Enter') handleUpdateStock(p);
+                           if (e.key === 'Escape') setEditingProductId(null);
+                         }}
+                       />
+                       <button onClick={() => handleUpdateStock(p)} className="p-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
+                         <Check size={16} />
+                       </button>
+                       <button onClick={() => setEditingProductId(null)} className="p-1.5 bg-slate-200 text-slate-600 rounded-md hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 transition-colors">
+                         <X size={16} />
+                       </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className={cn(
+                        "flex items-center gap-4 transition-opacity bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border dark:border-slate-700 shadow-sm",
+                        isAdmin ? "cursor-pointer hover:opacity-80 hover:border-slate-300" : "cursor-default opacity-90"
+                      )}
+                      onClick={() => {
+                        if (isAdmin) {
+                          setEditingProductId(p.id);
+                          setEditStockValue(0);
+                        }
+                      }}
+                      title={isAdmin ? "Haz clic para actualizar el stock rápidamente" : "Atención: Stock Bajo"}
+                    >
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Quedan:</span>
+                      <span className={cn(
+                        "px-2 py-0.5 rounded font-black text-sm",
+                        p.stockQuantity < 3 ? "bg-red-600 text-white" : "bg-orange-500 text-white"
+                      )}>{p.stockQuantity}</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
