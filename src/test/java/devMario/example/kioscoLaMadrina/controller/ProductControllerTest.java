@@ -26,13 +26,15 @@ public class ProductControllerTest {
     @MockitoBean
     private ProductService productService; // Falsificamos el Servicio (ya lo probamos ayer)
 
-    // Agregamos estos Mocks para que Spring Boot no intente arrancar el filtro de
-    // seguridad real (JWT)
     @MockitoBean
     private devMario.example.kioscoLaMadrina.security.jwt.JwtUtils jwtUtils;
 
     @MockitoBean
     private devMario.example.kioscoLaMadrina.security.services.UserDetailsServiceImpl userDetailsService;
+
+    // PATRÓN PROFESIONAL: ObjectMapper convierte DTOs a JSON
+    @Autowired
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @Test
     void testGetAllProducts_ReturnsListAndHttp200() throws Exception {
@@ -53,5 +55,36 @@ public class ProductControllerTest {
                                                                      // esté correcto
                 .andExpect(jsonPath("$[0].price").value(1500))
                 .andExpect(jsonPath("$[0].stockQuantity").value(10));
+    }
+
+    @Test
+    void testCreateProduct_InvalidData_ReturnsBadRequest() throws Exception {
+        // 1. ARRANGE
+        // Creamos un DTO corrupto (Precio negativo, y stock numéricamente imposible)
+        // Esto rompe las reglas: @Positive para precio y @Min(0) para stock.
+        ProductDTO corruptProduct = new ProductDTO(
+                null, 
+                "77912345", 
+                "Alfajor Roto", 
+                new BigDecimal("-500"), // PRECIO INVIABLE (Genera Error)
+                -5, // STOCK INVIABLE (Genera Error)
+                1L, 
+                "Golosinas"
+        );
+
+        // Convertimos el objeto Java a un String JSON usando nuestra herramienta ObjectMapper
+        String jsonCorrupto = objectMapper.writeValueAsString(corruptProduct);
+
+        // 2 & 3. ACT & ASSERT
+        // Simulamos una petición POST hacia tu API enviando la basura JSON
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonCorrupto))
+                
+                // ASSERTION MAGISTRAL:
+                // No revisamos el contenido interno de las variables.
+                // Exigimos que el Escudo de Spring Boot (@Valid) haya interceptado el ataque ANTES de llegar al Servicio.
+                // Si el escudo funcionó, tu método de Controller jamás se ejecutó y Spring respondió con HTTP 400 (Bad Request).
+                .andExpect(status().isBadRequest());
     }
 }
