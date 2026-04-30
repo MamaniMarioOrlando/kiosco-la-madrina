@@ -72,6 +72,23 @@
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- Testcontainers (El Jefe Final) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 
 		<!-- MapStruct -->
@@ -135,6 +152,16 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<environmentVariables>
+						<DOCKER_HOST>unix:///var/run/docker.sock</DOCKER_HOST>
+						<DOCKER_API_VERSION>1.41</DOCKER_API_VERSION>
+					</environmentVariables>
 				</configuration>
 			</plugin>
 		</plugins>

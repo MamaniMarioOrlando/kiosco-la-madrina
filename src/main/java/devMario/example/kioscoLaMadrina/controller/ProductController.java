@@ -33,6 +33,7 @@ public class ProductController {
     @Operation(summary = "Create product", description = "Creates a new product. Requires ADMIN role.")
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public ProductDTO create(@Valid @RequestBody ProductDTO dto) {
         return productService.create(dto);
     }
