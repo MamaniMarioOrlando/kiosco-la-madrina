@@ -85,6 +85,18 @@ Esto creará un contenedor llamado `kiosco-postgres` con:
 
 ---
 
+## 🧪 Testing y Calidad de Código
+El proyecto cuenta con una robusta suite de pruebas unitarias y de integración:
+- **Unit Testing**: Tests aislados para lógica de negocio y capa de repositorios usando la base de datos en memoria **H2**.
+- **Integration Testing E2E**: Usa **Testcontainers** combinando MockMvc y Docker. Levanta una instancia real y efímera de **PostgreSQL 15** para certificar el correcto funcionamiento de toda la aplicación (Controlador -> Servicio -> Repositorio).
+
+Para ejecutar toda la suite de pruebas (requiere Docker en ejecución):
+```bash
+mvn clean test
+```
+
+---
+
 ## ⚙️ Pasos para Ejecutar la Aplicación
 
 ### 1. Requisitos Previos
