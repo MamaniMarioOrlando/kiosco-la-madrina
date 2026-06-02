@@ -18,17 +18,6 @@ interface Product {
   categoryName?: string;
 }
 
-interface SaleDetail {
-  productName: string;
-  quantity: number;
-}
-
-interface Sale {
-  dateTime: string;
-  totalAmount: number;
-  details: SaleDetail[];
-}
-
 export default function Home() {
   const router = useRouter();
   const [stats, setStats] = useState({
@@ -98,36 +87,21 @@ export default function Home() {
 
   const fetchDashboardData = async () => {
     try {
-      const [productsRes, categoriesRes, salesRes] = await Promise.all([
+      const today = new Date().toISOString().split('T')[0];
+      const [productsRes, categoriesRes, summaryRes, topSellersRes] = await Promise.all([
         api.get('/products'),
         api.get('/categories'),
-        api.get('/sales')
+        api.get(`/sales/summary?date=${today}`),
+        api.get('/sales/top-sellers')
       ]);
 
       const products: Product[] = productsRes.data;
-      const sales: Sale[] = salesRes.data;
 
       // Calculate Today's Sales
-      const today = new Date().toLocaleDateString('es-AR');
-      const todayTotal = sales
-        .filter((s) => new Date(s.dateTime).toLocaleDateString('es-AR') === today)
-        .reduce((sum, s) => sum + s.totalAmount, 0);
+      const todayTotal = summaryRes.data?.grandTotal || 0;
 
       // Low Stock Alerts (Stock < 5)
       const lowStock = products.filter(p => p.stockQuantity < 5);
-
-      // Top Selling Products
-      const productSales: Record<string, number> = {};
-      sales.forEach(sale => {
-        sale.details.forEach(detail => {
-          productSales[detail.productName] = (productSales[detail.productName] || 0) + detail.quantity;
-        });
-      });
-
-      const sortedSellers = Object.entries(productSales)
-        .map(([name, quantity]) => ({ name, quantity }))
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 5);
 
       setStats({
         productCount: products.length,
@@ -135,7 +109,7 @@ export default function Home() {
         todaySales: todayTotal
       });
       setLowStockProducts(lowStock);
-      setTopSellers(sortedSellers);
+      setTopSellers(topSellersRes.data || []);
 
       // Notify low stock
       if (lowStock.length > 0) {

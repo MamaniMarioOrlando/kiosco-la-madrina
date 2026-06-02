@@ -64,7 +64,7 @@ public class SaleServiceImplTest {
         void testCreateSale_Success() {
                 // 1. ARRANQUE (Preparar el escenario y programar los Mocks)
                 SaleItemRequestDTO item = new SaleItemRequestDTO(1L, 3); // Intentamos comprar 3 unidades
-                SaleRequestDTO request = new SaleRequestDTO(List.of(item));
+                SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
                 when(userRepository
                                 .findByUsername("testadmin"))
@@ -83,7 +83,8 @@ public class SaleServiceImplTest {
                                 null,
                                 new BigDecimal("4500"),
                                 "testadmin",
-                                null);
+                                null,
+                                devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
                 when(saleMapper.toDTO(any(Sale.class))).thenReturn(dummyResponse);
 
                 // 2. ACT (Ejecutar el método real)
@@ -107,7 +108,7 @@ public class SaleServiceImplTest {
                 // 1. ARRANQUE
                 // Intentamos comprar 15 unidades, pero solo hay 10 en stock
                 SaleItemRequestDTO item = new SaleItemRequestDTO(1L, 15);
-                SaleRequestDTO request = new SaleRequestDTO(List.of(item));
+                SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
                 when(userRepository
                                 .findByUsername("testadmin"))
@@ -137,7 +138,7 @@ public class SaleServiceImplTest {
     void testCreateSale_UserNotFound_ThrowsException() {
         // 1. ARRANGE
         SaleItemRequestDTO item = new SaleItemRequestDTO(1L, 1);
-        SaleRequestDTO request = new SaleRequestDTO(List.of(item));
+        SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
         // Simulamos que el usuario fue borrado o no existe
         when(userRepository.findByUsername("hacker_user")).thenReturn(Optional.empty());
@@ -158,7 +159,7 @@ public class SaleServiceImplTest {
     void testCreateSale_ProductNotFound_ThrowsException() {
         // 1. ARRANGE
         SaleItemRequestDTO item = new SaleItemRequestDTO(99L, 1); // ID 99 no existe
-        SaleRequestDTO request = new SaleRequestDTO(List.of(item));
+        SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
         when(userRepository.findByUsername("testadmin")).thenReturn(Optional.of(testUser));
         when(productRepository.findById(99L)).thenReturn(Optional.empty());
@@ -186,7 +187,7 @@ public class SaleServiceImplTest {
         SaleRequestDTO request = new SaleRequestDTO(List.of(
                 new SaleItemRequestDTO(1L, 2),
                 new SaleItemRequestDTO(2L, 5)
-        ));
+        ), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
         when(userRepository.findByUsername("testadmin")).thenReturn(Optional.of(testUser));
         when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
@@ -194,7 +195,7 @@ public class SaleServiceImplTest {
         
         when(saleRepository.save(any(Sale.class))).thenAnswer(invocation -> invocation.getArgument(0));
         
-        SaleResponseDTO dummyResponse = new SaleResponseDTO(1L, null, new BigDecimal("8000"), "testadmin", null);
+        SaleResponseDTO dummyResponse = new SaleResponseDTO(1L, null, new BigDecimal("8000"), "testadmin", null, devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
         when(saleMapper.toDTO(any(Sale.class))).thenReturn(dummyResponse);
 
         // 2. ACT

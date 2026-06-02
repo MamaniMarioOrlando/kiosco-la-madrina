@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode } from 'lucide-react';
+import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode, Handshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Product {
@@ -102,39 +102,59 @@ export default function SalesPage() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const change = parseFloat(amountPaid) > 0 ? parseFloat(amountPaid) - total : 0;
 
-    const handleCheckout = async () => {
+    const buildSalePayload = (method: string) => ({
+        items: cart.map(item => ({
+            productId: item.id,
+            quantity: item.quantity
+        })),
+        paymentMethod: method
+    });
+
+    const refreshStockAndCleanCart = async () => {
+        setSaleSuccess(true);
+        setCart([]);
+        setAmountPaid('');
+
+        // Check for low stock after sale
+        const updatedProductsRes = await api.get('/products');
+        const updatedProducts: Product[] = updatedProductsRes.data;
+        setAllProducts(updatedProducts);
+
+        const lowStockCount = updatedProducts.filter(p => p.stockQuantity < 5).length;
+        if (lowStockCount > 0) {
+            toast.warning(`Atención: Stock Bajo`, {
+                id: 'low-stock-alert',
+                description: `Revisa el panel, hay ${lowStockCount} productos que necesitan reposición.`,
+                duration: 5000,
+            });
+        }
+
+        setTimeout(() => setSaleSuccess(false), 3000);
+    };
+
+    const handleCheckoutCash = async () => {
         if (cart.length === 0) return;
         setSubmitting(true);
         try {
-            const payload = {
-                items: cart.map(item => ({
-                    productId: item.id,
-                    quantity: item.quantity
-                }))
-            };
-            await api.post('/sales', payload);
-            setSaleSuccess(true);
-            setCart([]);
-            setAmountPaid('');
-
-            // Check for low stock after sale
-            const updatedProductsRes = await api.get('/products');
-            const updatedProducts: Product[] = updatedProductsRes.data;
-            setAllProducts(updatedProducts);
-
-            const lowStockCount = updatedProducts.filter(p => p.stockQuantity < 5).length;
-            if (lowStockCount > 0) {
-                toast.warning(`Atención: Stock Bajo`, {
-                    id: 'low-stock-alert', // This ID prevents duplicate toasts from stacking
-                    description: `Revisa el panel, hay ${lowStockCount} productos que necesitan reposición.`,
-                    duration: 5000,
-                });
-            }
-
-            setTimeout(() => setSaleSuccess(false), 3000);
+            await api.post('/sales', buildSalePayload('CASH'));
+            await refreshStockAndCleanCart();
         } catch (err: any) {
             console.error(err);
             alert('Error al procesar la venta. Revisa el stock o tu conexión.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleMercadoPagoCheckout = async () => {
+        if (cart.length === 0) return;
+        setSubmitting(true);
+        try {
+            await api.post('/sales', buildSalePayload('MERCADO_PAGO'));
+            await refreshStockAndCleanCart();
+        } catch (err: any) {
+            console.error(err);
+            alert('Error al registrar la venta con Mercado Pago manual.');
         } finally {
             setSubmitting(false);
         }
@@ -288,13 +308,35 @@ export default function SalesPage() {
                         </motion.div>
                     )}
 
-                    <Button
-                        onClick={handleCheckout}
-                        className="w-full h-14 text-xl font-bold bg-orange-600 hover:bg-orange-700"
-                        disabled={cart.length === 0 || submitting || (parseFloat(amountPaid) > 0 && change < 0)}
-                    >
-                        {submitting ? 'Procesando...' : 'COBRAR'}
-                    </Button>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button
+                            onClick={handleCheckoutCash}
+                            className="w-full h-14 flex flex-col items-center justify-center gap-1 bg-orange-600 hover:bg-orange-700 shadow-sm border border-orange-700/50"
+                            disabled={cart.length === 0 || submitting || (parseFloat(amountPaid) > 0 && change < 0)}
+                        >
+                            {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                                <>
+                                    <span className="text-xl leading-none shadow-sm">💵</span>
+                                    <span className="text-[10px] font-black tracking-widest uppercase text-white shadow-sm">Efectivo</span>
+                                </>
+                            )}
+                        </Button>
+
+                        <Button
+                            onClick={handleMercadoPagoCheckout}
+                            className="w-full h-14 flex flex-col items-center justify-center gap-1 bg-[#009EE3] hover:bg-[#008CC9] shadow-sm border border-[#009EE3]/50"
+                            disabled={cart.length === 0 || submitting}
+                        >
+                            {submitting ? <Loader2 className="animate-spin h-5 w-5 opacity-80" /> : (
+                                <>
+                                    <div className="bg-white rounded-full p-[3px] shadow-sm flex items-center justify-center">
+                                        <Handshake className="h-[14px] w-[14px] text-[#009EE3] ml-[1px]" strokeWidth={3} />
+                                    </div>
+                                    <span className="text-[9px] font-black tracking-widest text-white shadow-sm">MERCADO PAGO</span>
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

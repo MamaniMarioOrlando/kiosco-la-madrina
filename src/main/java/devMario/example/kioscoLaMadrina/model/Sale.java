@@ -25,6 +25,11 @@ public class Sale {
     @Column(nullable = false)
     private BigDecimal totalAmount;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method")
+    @Builder.Default
+    private PaymentMethod paymentMethod = PaymentMethod.CASH;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

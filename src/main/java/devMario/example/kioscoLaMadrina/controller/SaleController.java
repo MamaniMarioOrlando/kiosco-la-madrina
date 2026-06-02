@@ -27,9 +27,25 @@ public class SaleController {
         return saleService.createSale(request, userDetails.getUsername());
     }
 
-    @Operation(summary = "List sales", description = "Retrieves all recorded sales.")
+    @Operation(summary = "List sales", description = "Retrieves paginated sales, optionally filtered by date.")
     @GetMapping
-    public List<SaleResponseDTO> list() {
-        return saleService.findAll();
+    public devMario.example.kioscoLaMadrina.dto.PageResponseDTO<SaleResponseDTO> getSales(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+        return saleService.getSales(date, page, size);
+    }
+
+    @Operation(summary = "Get sales summary", description = "Retrieves the sales summary for a specific date (or all time if no date provided).")
+    @GetMapping("/summary")
+    public devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO getSummary(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+        return saleService.getSummary(date);
+    }
+
+    @Operation(summary = "Get top sellers", description = "Retrieves top 5 selling products")
+    @GetMapping("/top-sellers")
+    public java.util.List<java.util.Map<String, Object>> getTopSellers() {
+        return saleService.getTopSellers();
     }
 }
