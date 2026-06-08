@@ -31,14 +31,17 @@ public class WebSecurityConfig {
     private final UserDetailsService userDetailsService;
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter; // Making Filter managed by Spring properly
+    private final RateLimitingFilter rateLimitingFilter;
 
     // Inyección de dependencias por constructor
     public WebSecurityConfig(UserDetailsService userDetailsService,
             AuthEntryPointJwt unauthorizedHandler,
-            AuthTokenFilter authTokenFilter) {
+            AuthTokenFilter authTokenFilter,
+            RateLimitingFilter rateLimitingFilter) {
         this.userDetailsService = userDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
+        this.rateLimitingFilter = rateLimitingFilter;
     }
 
     @Bean
@@ -74,6 +77,7 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
+        http.addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
