@@ -50,7 +50,8 @@ export default function SalesHistoryPage() {
     const fetchData = async (page: number, mode: 'TODAY' | 'ALL') => {
         setPageLoading(true);
         try {
-            const dateStr = new Date().toISOString().split('T')[0];
+            const d = new Date();
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             const dateParam = mode === 'TODAY' ? `date=${dateStr}&` : '';
             
             const [salesRes, summaryRes] = await Promise.all([
@@ -114,15 +115,15 @@ export default function SalesHistoryPage() {
                     <div className="text-xs uppercase font-bold text-slate-500 mb-1">
                         {viewMode === 'TODAY' ? 'Total Ventas Hoy' : 'Total Histórico'}
                     </div>
-                    <div className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(summary.grandTotal)}</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white truncate w-full px-2" title={formatCurrency(summary.grandTotal)}>{formatCurrency(summary.grandTotal)}</div>
                 </div>
                 <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl shadow-sm flex flex-col items-center justify-center text-center dark:bg-orange-950/20 dark:border-orange-900/50">
                     <div className="text-xs uppercase font-bold text-orange-600 mb-1">💵 Ingreso Efectivo</div>
-                    <div className="text-3xl font-black text-orange-600 dark:text-orange-400">{formatCurrency(summary.cashTotal)}</div>
+                    <div className="text-2xl sm:text-3xl font-black text-orange-600 dark:text-orange-400 truncate w-full px-2" title={formatCurrency(summary.cashTotal)}>{formatCurrency(summary.cashTotal)}</div>
                 </div>
                 <div className="bg-[#009EE3]/5 border border-[#009EE3]/20 p-4 rounded-xl shadow-sm flex flex-col items-center justify-center text-center">
                     <div className="text-xs uppercase font-bold text-[#009EE3] mb-1">💳 Ingreso Mercado Pago</div>
-                    <div className="text-3xl font-black text-[#009EE3]">{formatCurrency(summary.mpTotal)}</div>
+                    <div className="text-2xl sm:text-3xl font-black text-[#009EE3] truncate w-full px-2" title={formatCurrency(summary.mpTotal)}>{formatCurrency(summary.mpTotal)}</div>
                 </div>
             </div>
 
