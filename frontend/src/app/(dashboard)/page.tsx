@@ -150,35 +150,35 @@ export default function Home() {
         animate={{ y: 0, opacity: 1 }}
         className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
-        <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group">
           <div className="absolute right-[-10px] top-[-10px] opacity-5 transform group-hover:scale-110 transition-transform">
             <DollarSign size={100} />
           </div>
           <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ventas de Hoy</h3>
-          <p className="text-4xl font-black text-orange-600 mt-2">{formatCurrency(stats.todaySales)}</p>
-          <div className="mt-4 flex items-center text-xs font-bold text-orange-500 bg-orange-50 dark:bg-orange-950/30 px-2 py-1 rounded-full w-fit">
+          <p className="text-4xl font-black text-orange-600 dark:text-orange-500 mt-2">{formatCurrency(stats.todaySales)}</p>
+          <div className="mt-4 flex items-center text-xs font-bold text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 px-2 py-1 rounded-full w-fit">
             Actualizado en vivo
           </div>
         </div>
 
-        <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group">
           <div className="absolute right-[-10px] top-[-10px] opacity-5 transform group-hover:scale-110 transition-transform">
             <Package size={100} />
           </div>
           <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Productos</h3>
-          <p className="text-4xl font-black text-blue-600 mt-2">{stats.productCount}</p>
-          <div className="mt-4 flex items-center text-xs font-bold text-blue-500 bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-full w-fit">
+          <p className="text-4xl font-black text-blue-600 dark:text-blue-500 mt-2">{stats.productCount}</p>
+          <div className="mt-4 flex items-center text-xs font-bold text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-full w-fit">
             En el catálogo
           </div>
         </div>
 
-        <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group">
           <div className="absolute right-[-10px] top-[-10px] opacity-5 transform group-hover:scale-110 transition-transform">
             <Tag size={100} />
           </div>
           <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categorías</h3>
-          <p className="text-4xl font-black text-green-600 mt-2">{stats.categoryCount}</p>
-          <div className="mt-4 flex items-center text-xs font-bold text-green-500 bg-green-50 dark:bg-green-950/30 px-2 py-1 rounded-full w-fit">
+          <p className="text-4xl font-black text-green-600 dark:text-green-500 mt-2">{stats.categoryCount}</p>
+          <div className="mt-4 flex items-center text-xs font-bold text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-1 rounded-full w-fit">
             Organizadas
           </div>
         </div>
@@ -193,7 +193,6 @@ export default function Home() {
             x: 0,
             opacity: 1,
             boxShadow: ["0px 0px 0px rgba(239, 68, 68, 0)", "0px 0px 20px rgba(239, 68, 68, 0.2)", "0px 0px 0px rgba(239, 68, 68, 0)"],
-            borderColor: ["rgba(226, 232, 240, 1)", "rgba(239, 68, 68, 0.5)", "rgba(226, 232, 240, 1)"]
           } : {
             x: 0,
             opacity: 1
@@ -202,9 +201,11 @@ export default function Home() {
             x: { duration: 0.5 },
             opacity: { duration: 0.5 },
             boxShadow: { duration: 2, repeat: Infinity },
-            borderColor: { duration: 2, repeat: Infinity }
           } : { duration: 0.5 }}
-          className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800"
+          className={cn(
+            "bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border",
+            lowStockProducts.some(p => p.stockQuantity < 3) ? "border-red-200 dark:border-red-800" : "border-slate-200 dark:border-slate-800"
+          )}
         >        <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <div className={cn(

@@ -70,12 +70,12 @@ export function Sidebar({ className }: { className?: string }) {
             {/* Sidebar Container */}
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-900 text-white transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
+                    "fixed inset-y-0 left-0 z-40 w-64 transform bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
                     isOpen ? "translate-x-0" : "-translate-x-full",
                     className
                 )}
             >
-                <div className="flex h-16 items-center justify-center border-b border-slate-800">
+                <div className="flex h-16 items-center justify-center border-b border-slate-200 dark:border-slate-800">
                     <h1 className="text-xl font-bold text-orange-500">Kiosco La Madrina</h1>
                 </div>
 
@@ -94,7 +94,7 @@ export function Sidebar({ className }: { className?: string }) {
                                     "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
                                     isActive
                                         ? "bg-orange-600 text-white"
-                                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                                 )}
                             >
                                 <div className="relative">

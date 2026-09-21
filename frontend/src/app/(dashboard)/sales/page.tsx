@@ -171,8 +171,8 @@ export default function SalesPage() {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h2 className="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-50 flex items-center gap-2">
                         <Search className="h-5 w-5 text-orange-500" /> Buscar Producto
                     </h2>
                     <div className="relative">
@@ -187,16 +187,16 @@ export default function SalesPage() {
                     </div>
 
                     {searchTerm && (
-                        <div className="mt-4 border rounded-lg overflow-hidden divide-y bg-slate-50">
+                        <div className="mt-4 border rounded-lg overflow-hidden divide-y bg-slate-50 dark:bg-slate-900 dark:border-slate-800 dark:divide-slate-800">
                             {filteredProducts.length > 0 ? filteredProducts.map(p => (
                                 <div
                                     key={p.id}
-                                    className="p-4 hover:bg-orange-50 cursor-pointer flex justify-between items-center transition-colors"
+                                    className="p-4 hover:bg-orange-50 dark:hover:bg-slate-800 cursor-pointer flex justify-between items-center transition-colors"
                                     onClick={() => addToCart(p)}
                                 >
                                     <div>
-                                        <div className="font-bold text-slate-900">{p.name}</div>
-                                        <div className="text-sm text-slate-500 font-mono italic">{p.barcode}</div>
+                                        <div className="font-bold text-slate-900 dark:text-white">{p.name}</div>
+                                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono italic">{p.barcode}</div>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-lg font-bold text-orange-600 dark:text-orange-400">{formatCurrency(p.price)}</div>
@@ -211,7 +211,7 @@ export default function SalesPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-[calc(100vh-140px)]">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 flex flex-col h-[calc(100vh-140px)]">
                 <div className="p-4 border-b bg-slate-900 text-white rounded-t-xl flex items-center justify-between">
                     <h2 className="font-bold flex items-center gap-2">
                         <ShoppingCart className="h-5 w-5" /> Carrito
@@ -235,16 +235,16 @@ export default function SalesPage() {
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col gap-2"
+                                    className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800 flex flex-col gap-2"
                                 >
                                     <div className="flex justify-between items-start">
-                                        <span className="font-medium text-slate-800">{item.name}</span>
+                                        <span className="font-medium text-slate-800 dark:text-slate-200">{item.name}</span>
                                         <button onClick={() => removeFromCart(item.id)} className="text-slate-400 hover:text-red-500">
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2 border rounded-md bg-white p-1">
+                                        <div className="flex items-center gap-2 border dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 p-1">
                                             <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:bg-slate-100 rounded text-slate-600">
                                                 <Minus className="h-3 w-3" />
                                             </button>
@@ -284,9 +284,9 @@ export default function SalesPage() {
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
-                                    className="flex justify-between items-center p-3 rounded-lg bg-white border border-slate-200"
+                                    className="flex justify-between items-center p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
                                 >
-                                    <span className="text-slate-600 font-medium">Vuelto:</span>
+                                    <span className="text-slate-600 dark:text-slate-400 font-medium">Vuelto:</span>
                                     <span className={cn(
                                         "text-xl font-bold",
                                         change < 0 ? "text-red-500" : "text-green-600 dark:text-green-400"
@@ -302,7 +302,7 @@ export default function SalesPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-green-100 text-green-700 p-2 rounded text-center text-sm font-bold flex items-center justify-center gap-2"
+                            className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 p-2 rounded text-center text-sm font-bold flex items-center justify-center gap-2"
                         >
                             <CheckCircle2 className="h-4 w-4" /> Venta registrada con éxito
                         </motion.div>

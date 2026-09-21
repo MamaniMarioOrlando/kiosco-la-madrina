@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/table";
 import { Plus, Loader2, Package, Barcode, Trash2, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatCurrency } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn, formatCurrency } from '@/lib/utils';
 
 interface Product {
     id: number;
@@ -48,6 +49,7 @@ export default function ProductsPage() {
         stockQuantity: '',
         categoryId: ''
     });
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -77,8 +79,21 @@ export default function ProductsPage() {
         }
     };
 
+    const validateForm = () => {
+        const newErrors: { [key: string]: string } = {};
+        if (!formData.barcode.trim()) newErrors.barcode = 'Este campo es obligatorio';
+        if (!formData.name.trim()) newErrors.name = 'Este campo es obligatorio';
+        if (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) <= 0) newErrors.price = 'Ingresa un precio válido';
+        if (!formData.stockQuantity || isNaN(parseInt(formData.stockQuantity)) || parseInt(formData.stockQuantity) < 0) newErrors.stockQuantity = 'Ingresa un stock válido';
+        if (!formData.categoryId) newErrors.categoryId = 'Este campo es obligatorio';
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateForm()) return;
         setSubmitting(true);
         try {
             const payload = {
@@ -97,6 +112,7 @@ export default function ProductsPage() {
             setIsAdding(false);
             setEditingId(null);
             setFormData({ barcode: '', name: '', price: '', stockQuantity: '', categoryId: '' });
+            setErrors({});
             fetchProducts();
         } catch (err: any) {
             console.error('Detalles del error:', err);
@@ -124,6 +140,7 @@ export default function ProductsPage() {
             stockQuantity: p.stockQuantity.toString(),
             categoryId: p.categoryId.toString()
         });
+        setErrors({});
         setIsAdding(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -151,8 +168,8 @@ export default function ProductsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Productos</h2>
-                    <p className="text-slate-500">Administra el inventario y precios.</p>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Productos</h2>
+                    <p className="text-slate-500 dark:text-slate-400">Administra el inventario y precios.</p>
                 </div>
                 {isAdmin && (
                     <Button
@@ -161,6 +178,7 @@ export default function ProductsPage() {
                                 setIsAdding(false);
                                 setEditingId(null);
                                 setFormData({ barcode: '', name: '', price: '', stockQuantity: '', categoryId: '' });
+                                setErrors({});
                             } else {
                                 setIsAdding(true);
                             }
@@ -180,68 +198,93 @@ export default function ProductsPage() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                     >
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
-                            <h3 className="text-lg font-semibold mb-4 text-slate-800">
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 mb-6">
+                            <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
                                 {editingId ? 'Editar Producto' : 'Nuevo Producto'}
                             </h3>
-                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                                 <div className="space-y-2">
-                                    <Label>Código de Barras</Label>
-                                    <div className="relative">
-                                        <Barcode className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                                        <Input
-                                            className="pl-9"
-                                            value={formData.barcode}
-                                            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Nombre</Label>
+                                    <Label>Código de Barras <span className="text-red-500">*</span></Label>
                                     <Input
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        required
+                                        placeholder="Ej: 7791234567890"
+                                        value={formData.barcode}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, barcode: e.target.value });
+                                            if (errors.barcode) setErrors({ ...errors, barcode: '' });
+                                        }}
+                                        className={errors.barcode ? "border-red-500 focus-visible:ring-red-500" : ""}
                                     />
+                                    {errors.barcode && <p className="text-xs text-red-500 dark:text-red-400">{errors.barcode}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Precio ($)</Label>
+                                    <Label>Nombre <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        placeholder="Ej: Coca-Cola 500ml"
+                                        value={formData.name}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, name: e.target.value });
+                                            if (errors.name) setErrors({ ...errors, name: '' });
+                                        }}
+                                        className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
+                                    />
+                                    {errors.name && <p className="text-xs text-red-500 dark:text-red-400">{errors.name}</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Precio ($) <span className="text-red-500">*</span></Label>
                                     <Input
                                         type="number"
                                         step="0.01"
+                                        placeholder="0.00"
                                         value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                        required
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, price: e.target.value });
+                                            if (errors.price) setErrors({ ...errors, price: '' });
+                                        }}
+                                        className={cn(
+                                            "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                                            errors.price ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        )}
                                     />
+                                    {errors.price && <p className="text-xs text-red-500 dark:text-red-400">{errors.price}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>{editingId ? 'Stock Actual' : 'Stock Inicial'}</Label>
+                                    <Label>{editingId ? 'Stock Actual' : 'Stock Inicial'} <span className="text-red-500">*</span></Label>
                                     <Input
                                         type="number"
+                                        placeholder="0"
                                         value={formData.stockQuantity}
-                                        onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                                        required
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, stockQuantity: e.target.value });
+                                            if (errors.stockQuantity) setErrors({ ...errors, stockQuantity: '' });
+                                        }}
+                                        className={cn(
+                                            "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                                            errors.stockQuantity ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        )}
                                     />
+                                    {errors.stockQuantity && <p className="text-xs text-red-500 dark:text-red-400">{errors.stockQuantity}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Categoría</Label>
+                                    <Label>Categoría <span className="text-red-500">*</span></Label>
                                     <select
-                                        className="w-full h-10 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className={cn(
+                                            "w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white transition-colors",
+                                            errors.categoryId ? "border-red-500 focus-visible:ring-red-500 ring-red-500 ring-1" : "border-slate-200 dark:border-slate-800"
+                                        )}
                                         value={formData.categoryId}
-                                        onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                                        required
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, categoryId: e.target.value });
+                                            if (errors.categoryId) setErrors({ ...errors, categoryId: '' });
+                                        }}
                                     >
                                         <option value="">Seleccionar...</option>
                                         {categories.map(c => (
                                             <option key={c.id} value={c.id}>{c.name}</option>
                                         ))}
                                     </select>
+                                    {errors.categoryId && <p className="text-xs text-red-500 dark:text-red-400">{errors.categoryId}</p>}
                                 </div>
-                                <div className="flex items-end gap-2">
-                                    <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700" disabled={submitting}>
-                                        {submitting ? 'Guardando...' : (editingId ? 'Actualizar Producto' : 'Crear Producto')}
-                                    </Button>
+                                <div className="flex items-end justify-end gap-2 md:col-span-2 lg:col-span-1 pt-2">
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -249,9 +292,13 @@ export default function ProductsPage() {
                                             setIsAdding(false);
                                             setEditingId(null);
                                             setFormData({ barcode: '', name: '', price: '', stockQuantity: '', categoryId: '' });
+                                            setErrors({});
                                         }}
                                     >
                                         Cancelar
+                                    </Button>
+                                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={submitting}>
+                                        {submitting ? 'Guardando...' : (editingId ? 'Actualizar' : 'Crear')}
                                     </Button>
                                 </div>
                             </form>
@@ -260,7 +307,7 @@ export default function ProductsPage() {
                 )}
             </AnimatePresence>
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800">
@@ -303,22 +350,32 @@ export default function ProductsPage() {
                                     {isAdmin && (
                                         <TableCell>
                                             <div className="flex gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleEdit(p)}
-                                                    className="text-blue-600 hover:text-blue-700 p-1 h-8 w-8"
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(p.id)}
-                                                    className="text-red-600 hover:text-red-700 p-1 h-8 w-8"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleEdit(p)}
+                                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 p-1 h-8 w-8 transition-colors"
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Editar producto</TooltipContent>
+                                                </Tooltip>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleDelete(p.id)}
+                                                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1 h-8 w-8 transition-colors"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Eliminar producto</TooltipContent>
+                                                </Tooltip>
                                             </div>
                                         </TableCell>
                                     )}

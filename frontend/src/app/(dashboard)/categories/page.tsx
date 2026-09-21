@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Loader2, Pencil, Trash2, X, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Category {
     id: number;
@@ -137,8 +138,8 @@ export default function CategoriesPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Categorías</h2>
-                    <p className="text-slate-500">Gestiona las categorías de tus productos.</p>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Categorías</h2>
+                    <p className="text-slate-500 dark:text-slate-400">Gestiona las categorías de tus productos.</p>
                 </div>
                 {isAdmin && !isAdding && (
                     <Button onClick={() => setIsAdding(true)} className="bg-orange-600 hover:bg-orange-700">
@@ -151,7 +152,7 @@ export default function CategoriesPage() {
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white p-6 rounded-xl shadow-sm border border-orange-100"
+                    className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800"
                 >
                     <form onSubmit={handleAddCategory} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                         <div className="space-y-2">
@@ -223,21 +224,41 @@ export default function CategoriesPage() {
                                             <div className="flex gap-2">
                                                 {editingId === c.id ? (
                                                     <>
-                                                        <Button variant="ghost" size="sm" onClick={() => handleUpdateCategory(c.id)} className="text-green-600 p-1 h-8 w-8">
-                                                            <Check className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="sm" onClick={() => setEditingId(null)} className="text-red-600 p-1 h-8 w-8">
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button variant="default" size="sm" onClick={() => handleUpdateCategory(c.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white p-1 h-8 w-8 rounded-full transition-colors">
+                                                                    <Check className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Guardar categoría</TooltipContent>
+                                                        </Tooltip>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button variant="default" size="sm" onClick={() => setEditingId(null)} className="bg-red-500 hover:bg-red-600 text-white p-1 h-8 w-8 rounded-full transition-colors">
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Cancelar edición</TooltipContent>
+                                                        </Tooltip>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(c)} className="text-blue-600 p-1 h-8 w-8">
-                                                            <Pencil className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(c.id)} className="text-red-600 p-1 h-8 w-8">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button variant="ghost" size="sm" onClick={() => handleEditClick(c)} className="text-blue-600 dark:text-blue-400 p-1 h-8 w-8 transition-colors">
+                                                                    <Pencil className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Editar categoría</TooltipContent>
+                                                        </Tooltip>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(c.id)} className="text-red-600 dark:text-red-400 p-1 h-8 w-8 transition-colors">
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Eliminar categoría</TooltipContent>
+                                                        </Tooltip>
                                                     </>
                                                 )}
                                             </div>

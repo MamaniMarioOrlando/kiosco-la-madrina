@@ -115,7 +115,7 @@ export default function SettingsPage() {
         <div className="space-y-6">
             <div className="flex items-center gap-2">
                 <Settings className="h-6 w-6 text-slate-600" />
-                <h2 className="text-2xl font-bold text-slate-900">Configuración</h2>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Configuración</h2>
             </div>
 
             <motion.div
@@ -123,14 +123,14 @@ export default function SettingsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-2xl"
             >
-                <Card>
+                <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                     <CardHeader>
-                        <CardTitle>Perfil de Usuario</CardTitle>
-                        <CardDescription>Información del usuario y foto de perfil.</CardDescription>
+                        <CardTitle className="dark:text-white">Perfil de Usuario</CardTitle>
+                        <CardDescription className="dark:text-slate-400">Información del usuario y foto de perfil.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* Avatar Upload Section */}
-                        <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-xl">
                             <div className="relative group">
                                 <div className="h-24 w-24 rounded-full overflow-hidden bg-gradient-to-tr from-orange-500 to-orange-400 flex items-center justify-center text-white text-3xl font-bold shadow-md ring-4 ring-white">
                                     {user?.avatarUrl ? (
@@ -155,8 +155,8 @@ export default function SettingsPage() {
                                 />
                             </div>
                             <div className="text-center sm:text-left">
-                                <p className="text-lg font-bold text-slate-900 capitalize">{user?.username || 'Cargando...'}</p>
-                                <p className="text-sm text-slate-500 mb-2">Haz clic en la imagen para cambiar tu avatar.</p>
+                                <p className="text-lg font-bold text-slate-900 dark:text-white capitalize">{user?.username || 'Cargando...'}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Haz clic en la imagen para cambiar tu avatar.</p>
                                 <Button 
                                     variant="outline" 
                                     size="sm" 
@@ -168,12 +168,12 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border dark:border-slate-800">
+                            <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
                                 <Shield className="h-6 w-6 text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-slate-500">Rol asignado</p>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Rol asignado</p>
                                 <div className="flex gap-2 mt-1">
                                     {user?.roles?.map((role: string) => (
                                         <span
@@ -187,7 +187,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </CardContent>
-                    <CardFooter className="bg-slate-50/50 flex justify-end">
+                    <CardFooter className="bg-slate-50/50 dark:bg-slate-900/50 border-t dark:border-slate-800 flex justify-end p-6">
                         <Button
                             variant="destructive"
                             onClick={handleLogout}
@@ -198,9 +198,9 @@ export default function SettingsPage() {
                     </CardFooter>
                 </Card>
 
-                <div className="mt-8 p-6 border border-dashed border-slate-300 rounded-xl bg-slate-50/50">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Próximamente</h3>
-                    <p className="text-sm text-slate-500">
+                <div className="mt-8 p-6 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-900/50">
+                    <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Próximamente</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                         Próximamente podrás configurar el nombre del Kiosco, el logo y los ticket de impresión desde aquí.
                     </p>
                 </div>
