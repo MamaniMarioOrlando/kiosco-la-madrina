@@ -18,8 +18,11 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.test.context.ActiveProfiles;
+
 // MAGIA PURA: Al extender de AbstractIntegrationTest, Spring Boot sabe que
 // debe ir a buscar el contenedor de Docker para PostgreSQL antes de correr la prueba.
+@ActiveProfiles("test")
 public class ProductIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
