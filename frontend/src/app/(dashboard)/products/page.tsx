@@ -83,8 +83,10 @@ export default function ProductsPage() {
         const newErrors: { [key: string]: string } = {};
         if (!formData.barcode.trim()) newErrors.barcode = 'Este campo es obligatorio';
         if (!formData.name.trim()) newErrors.name = 'Este campo es obligatorio';
-        if (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) <= 0) newErrors.price = 'Ingresa un precio válido';
-        if (!formData.stockQuantity || isNaN(parseInt(formData.stockQuantity)) || parseInt(formData.stockQuantity) < 0) newErrors.stockQuantity = 'Ingresa un stock válido';
+        if (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) < 0) newErrors.price = 'El precio no puede ser negativo';
+        if (parseFloat(formData.price) > 10000000) newErrors.price = 'El precio no puede superar los $10.000.000';
+        if (!formData.stockQuantity || isNaN(parseInt(formData.stockQuantity)) || parseInt(formData.stockQuantity) < 0) newErrors.stockQuantity = 'El stock no puede ser negativo';
+        if (parseInt(formData.stockQuantity) > 100000) newErrors.stockQuantity = 'El stock no puede superar las 100.000 unidades';
         if (!formData.categoryId) newErrors.categoryId = 'Este campo es obligatorio';
         
         setErrors(newErrors);
@@ -202,7 +204,7 @@ export default function ProductsPage() {
                             <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
                                 {editingId ? 'Editar Producto' : 'Nuevo Producto'}
                             </h3>
-                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                            <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                                 <div className="space-y-2">
                                     <Label>Código de Barras <span className="text-red-500">*</span></Label>
                                     <Input
@@ -234,6 +236,7 @@ export default function ProductsPage() {
                                     <Input
                                         type="number"
                                         step="0.01"
+                                        max={10000000}
                                         placeholder="0.00"
                                         value={formData.price}
                                         onChange={(e) => {
@@ -251,6 +254,7 @@ export default function ProductsPage() {
                                     <Label>{editingId ? 'Stock Actual' : 'Stock Inicial'} <span className="text-red-500">*</span></Label>
                                     <Input
                                         type="number"
+                                        max={100000}
                                         placeholder="0"
                                         value={formData.stockQuantity}
                                         onChange={(e) => {
