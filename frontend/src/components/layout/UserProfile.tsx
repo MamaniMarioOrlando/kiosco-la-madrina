@@ -5,32 +5,15 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Settings, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { clearSession, isAdmin, useCurrentUser } from '@/lib/session';
 
 export function UserProfile() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
-    const [username, setUsername] = useState<string>('');
-    const [role, setRole] = useState<string>('');
-    const [avatarUrl, setAvatarUrl] = useState<string>('');
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const user = useCurrentUser();
 
     useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            try {
-                const parsed = JSON.parse(userData);
-                setUsername(parsed.username || 'Usuario');
-                if (parsed.roles && parsed.roles.length > 0) {
-                    setRole(parsed.roles[0].replace('ROLE_', ''));
-                }
-                if (parsed.avatarUrl) {
-                    setAvatarUrl(parsed.avatarUrl);
-                }
-            } catch (e) {
-                setUsername('Usuario');
-            }
-        }
-        
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
@@ -43,13 +26,27 @@ export function UserProfile() {
 
     const handleLogout = () => {
         setIsOpen(false);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearSession();
         router.push('/login');
     };
 
-    const isRoleAdmin = role.toLowerCase().includes('admin');
-    const initial = username ? username.charAt(0).toUpperCase() : 'U';
+    // Mientras se hidrata no sabemos quién es: un placeholder neutro evita mostrar datos falsos.
+    if (!user) {
+        return (
+            <div className="flex items-center gap-2 p-1 pr-2" aria-hidden="true">
+                <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                <div className="hidden sm:flex flex-col gap-1">
+                    <div className="h-3 w-20 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                    <div className="h-2 w-12 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                </div>
+            </div>
+        );
+    }
+
+    const { username, avatarUrl } = user;
+    const role = user.roles?.[0]?.replace('ROLE_', '') ?? '';
+    const isRoleAdmin = isAdmin(user);
+    const initial = username.charAt(0).toUpperCase();
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -69,10 +66,10 @@ export function UserProfile() {
                 {/* Nombre y Rol Visibles en Escritorio */}
                 <div className="hidden sm:flex flex-col items-start mr-1 text-left">
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-none capitalize">
-                        {username || 'Usuario'}
+                        {username}
                     </span>
                     <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                        {role || 'User'}
+                        {role}
                     </span>
                 </div>
                 {/* Flecha Animada (indicador de dropdown) */}
@@ -105,7 +102,7 @@ export function UserProfile() {
                                     ? "bg-orange-50 border-orange-200 text-orange-600 dark:bg-orange-900/20 dark:border-orange-900/50 dark:text-orange-400"
                                     : "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-900/50 dark:text-blue-400"
                             )}>
-                                {role || 'User'}
+                                {role}
                             </div>
                         </div>
 

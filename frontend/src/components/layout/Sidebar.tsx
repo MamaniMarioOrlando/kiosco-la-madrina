@@ -12,7 +12,8 @@ import {
     Menu,
     X,
     ShoppingCart,
-    History as HistoryIcon
+    History as HistoryIcon,
+    Users
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ const sidebarItems = [
     { icon: HistoryIcon, label: 'Historial', href: '/sales/history' },
     { icon: Tags, label: 'Categorías', href: '/categories', adminOnly: true },
     { icon: ShoppingBasket, label: 'Productos', href: '/products' },
+    { icon: Users, label: 'Usuarios', href: '/users', adminOnly: true },
     { icon: Settings, label: 'Configuración', href: '/settings' },
 ];
 

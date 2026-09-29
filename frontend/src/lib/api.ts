@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearSession, getToken } from './session';
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
@@ -10,7 +11,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('token');
+            const token = getToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -25,10 +26,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        // Un 401 en el login significa credenciales inválidas, no sesión vencida:
+        // redirigir recargaría la página y borraría el mensaje de error.
+        const isLoginRequest = error.config?.url?.includes('/auth/signin');
+        if (error.response?.status === 401 && !isLoginRequest) {
             if (typeof window !== 'undefined') {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
+                clearSession();
                 window.location.href = '/login';
             }
         }
