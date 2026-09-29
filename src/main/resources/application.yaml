@@ -35,3 +35,8 @@ kiosco:
   app:
     jwtSecret: ${JWT_SECRET_KEY}
     jwtExpirationMs: 604800000
+  bootstrap:
+    admin:
+      username: ${ADMIN_USERNAME:}
+      password: ${ADMIN_PASSWORD:}
+      email: ${ADMIN_EMAIL:admin@kiosco.local}

@@ -32,16 +32,19 @@ public class WebSecurityConfig {
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter; // Making Filter managed by Spring properly
     private final RateLimitingFilter rateLimitingFilter;
+    private final JsonAccessDeniedHandler accessDeniedHandler;
 
     // Inyección de dependencias por constructor
     public WebSecurityConfig(UserDetailsService userDetailsService,
             AuthEntryPointJwt unauthorizedHandler,
             AuthTokenFilter authTokenFilter,
-            RateLimitingFilter rateLimitingFilter) {
+            RateLimitingFilter rateLimitingFilter,
+            JsonAccessDeniedHandler accessDeniedHandler) {
         this.userDetailsService = userDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
         this.rateLimitingFilter = rateLimitingFilter;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -68,12 +71,21 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // El contenedor hace un forward a /error tras un sendError(); si /error exigiera token,
+                        // un 403 (sin permisos) le llegaría al cliente como 401 (sesión inválida).
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // Defensa en profundidad: además del @PreAuthorize, se corta en el filtro,
+                        // antes de que la validación del body revele detalles a quien no tiene permiso.
+                        .requestMatchers("/api/users/me/**").authenticated()
+                        .requestMatchers("/api/users/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
