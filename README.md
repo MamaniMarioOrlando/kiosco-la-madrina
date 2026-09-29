@@ -88,7 +88,7 @@ Esto creará un contenedor llamado `kiosco-postgres` con:
 ## 🧪 Testing y Calidad de Código
 El proyecto cuenta con una robusta suite de pruebas unitarias y de integración:
 - **Unit Testing**: Tests aislados para lógica de negocio y capa de repositorios usando la base de datos en memoria **H2**.
-- **Integration Testing E2E**: Usa **Testcontainers** combinando MockMvc y Docker. Levanta una instancia real y efímera de **PostgreSQL 15** para certificar el correcto funcionamiento de toda la aplicación (Controlador -> Servicio -> Repositorio).
+- **Integration Testing E2E**: Usa **Testcontainers** combinando MockMvc y Docker. Levanta una instancia real y efímera de **PostgreSQL 16** para certificar el correcto funcionamiento de toda la aplicación (Controlador -> Servicio -> Repositorio).
 
 Para ejecutar toda la suite de pruebas (requiere Docker en ejecución):
 ```bash
@@ -109,14 +109,35 @@ mvn clean test
 docker compose up -d
 ```
 
-### 3. Ejecutar el Backend
+### 3. Configurar las variables de entorno
+Creá un archivo `.env` en la raíz (está en `.gitignore`, nunca lo commitees):
+```bash
+DB_URL=jdbc:postgresql://localhost:5432/kiosco_db
+DB_USERNAME=postgres
+DB_PASSWORD=password
+# Clave en Base64 de al menos 256 bits. Generala con: openssl rand -base64 32
+JWT_SECRET_KEY=...
+# Primer administrador: se crea al arrancar solo si todavía no existe ningún ADMIN
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=una-contraseña-segura   # mínimo 8 caracteres
+ADMIN_EMAIL=admin@tu-kiosco.com
+```
+
+### Usuarios y roles
+No hay registro público: **solo un ADMIN puede crear usuarios**, desde la pantalla *Usuarios*.
+- **ADMIN**: gestiona productos, categorías y usuarios.
+- **EMPLOYEE**: registra ventas y consulta información.
+
+Un usuario desactivado pierde el acceso de inmediato, aunque tenga una sesión abierta.
+
+### 4. Ejecutar el Backend
 Desde la raíz del proyecto:
 ```bash
 ./mvnw spring-boot:run
 ```
 El servidor backend correrá en `http://localhost:8080`.
 
-### 4. Ejecutar el Frontend
+### 5. Ejecutar el Frontend
 Abre una nueva terminal y navega a la carpeta frontend:
 ```bash
 cd frontend
