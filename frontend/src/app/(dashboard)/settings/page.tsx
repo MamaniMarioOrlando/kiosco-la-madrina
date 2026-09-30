@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -8,23 +8,17 @@ import { Settings, Shield, LogOut, Camera, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { clearSession, updateSessionUser, useCurrentUser } from '@/lib/session';
 
 export default function SettingsPage() {
     const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    const user = useCurrentUser();
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            setUser(JSON.parse(userData));
-        }
-    }, []);
-
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearSession();
         router.push('/login');
     };
 
@@ -75,7 +69,7 @@ export default function SettingsPage() {
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !user?.id) return;
+        if (!file || !user) return;
 
         if (!file.type.startsWith('image/')) {
             toast.error('Por favor, selecciona una imagen válida.');
@@ -86,18 +80,13 @@ export default function SettingsPage() {
             setIsUploading(true);
             const base64Image = await compressImage(file);
             
-            await api.patch(`/users/${user.id}/avatar`, {
+            await api.patch('/users/me/avatar', {
                 avatarUrl: base64Image
             });
 
-            // Update local storage and state
-            const updatedUser = { ...user, avatarUrl: base64Image };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            setUser(updatedUser);
-            
+            // Notifica a todos los componentes suscritos (p. ej. el menú de usuario): sin recargar la página.
+            updateSessionUser({ avatarUrl: base64Image });
             toast.success('Avatar actualizado con éxito.');
-            // Refresh to update Navbar avatar immediately
-            window.location.reload();
         } catch (err) {
             console.error('Failed to upload avatar', err);
             toast.error('Ocurrió un error al subir el avatar.');
@@ -109,7 +98,7 @@ export default function SettingsPage() {
         }
     };
 
-    const initial = user?.username ? user.username.charAt(0).toUpperCase() : 'U';
+    const initial = user?.username.charAt(0).toUpperCase() ?? '';
 
     return (
         <div className="space-y-6">
@@ -132,7 +121,11 @@ export default function SettingsPage() {
                         {/* Avatar Upload Section */}
                         <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-xl">
                             <div className="relative group">
-                                <div className="h-24 w-24 rounded-full overflow-hidden bg-gradient-to-tr from-orange-500 to-orange-400 flex items-center justify-center text-white text-3xl font-bold shadow-md ring-4 ring-white">
+                                <div className={cn(
+                                    "h-24 w-24 rounded-full overflow-hidden flex items-center justify-center text-white text-3xl font-bold shadow-md ring-4 ring-white dark:ring-slate-900",
+                                    // Sin usuario todavía (hidratando): círculo neutro en vez de una inicial inventada.
+                                    user ? "bg-gradient-to-tr from-orange-500 to-orange-400" : "bg-slate-200 dark:bg-slate-800 animate-pulse"
+                                )}>
                                     {user?.avatarUrl ? (
                                         <img src={user.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                                     ) : (

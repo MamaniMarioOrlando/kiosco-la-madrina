@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useSyncExternalStore } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -11,21 +11,27 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<Theme>('light');
+const THEME_CHANGE_EVENT = 'theme-change';
 
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') as Theme | null;
-        const initialTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        setTheme(initialTheme);
-        document.documentElement.classList.toggle('dark', initialTheme === 'dark');
-    }, []);
+// La fuente de verdad es la clase `dark` del <html>, que el script de layout.tsx aplica antes del
+// primer pintado. Leerla de ahí evita duplicar el estado y el destello en modo claro.
+function readTheme(): Theme {
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+function subscribe(onChange: () => void) {
+    window.addEventListener(THEME_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(THEME_CHANGE_EVENT, onChange);
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+    const theme = useSyncExternalStore(subscribe, readTheme, () => 'light' as Theme);
 
     const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light';
-        setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
+        const newTheme: Theme = theme === 'light' ? 'dark' : 'light';
         document.documentElement.classList.toggle('dark', newTheme === 'dark');
+        localStorage.setItem('theme', newTheme);
+        window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
     };
 
     return (

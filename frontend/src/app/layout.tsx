@@ -17,6 +17,10 @@ import { Toaster } from "sonner";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
+// Corre antes del primer pintado: aplica el modo oscuro sin el destello en claro que
+// provocaba hacerlo en un useEffect (que se ejecuta después de pintar).
+const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
+
 
 export default function RootLayout({
   children,
@@ -25,6 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={cn(outfit.className, "min-h-screen antialiased transition-colors duration-300")}>
         <ThemeProvider>
           {children}

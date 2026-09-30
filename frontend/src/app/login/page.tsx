@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, User } from 'lucide-react';
 import api from '@/lib/api';
+import { isAxiosError } from 'axios';
+import { startSession } from '@/lib/session';
 import { motion } from 'framer-motion';
 
 export default function LoginPage() {
@@ -31,14 +32,15 @@ export default function LoginPage() {
 
             const { token, roles, username: user, id, avatarUrl } = response.data;
 
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ username: user, roles, id, avatarUrl }));
+            startSession(token, { username: user, roles, id, avatarUrl });
 
             router.push('/');
-        } catch (err: any) {
-            console.error('Login failed', err);
-            if (err.response && err.response.data) {
-                setError('Credenciales inválidas o error en el servidor');
+        } catch (err) {
+            // Sin console.error: un 401 acá es un caso esperado (credenciales inválidas), no un bug.
+            if (isAxiosError(err) && err.response?.status === 401) {
+                setError('Usuario o contraseña incorrectos');
+            } else if (isAxiosError(err) && err.response) {
+                setError('Error en el servidor. Intentá de nuevo en unos minutos.');
             } else {
                 setError('No se pudo conectar con el servidor');
             }
@@ -48,24 +50,24 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+        <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-md"
             >
-                <Card className="shadow-lg border-t-4 border-t-indigo-600">
+                <Card className="shadow-lg border-t-4 border-t-indigo-600 bg-white dark:bg-slate-900 dark:border-slate-800">
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl font-bold text-center text-slate-900">Kiosco La Madrina</CardTitle>
-                        <CardDescription className="text-center">
+                        <CardTitle className="text-2xl font-bold text-center text-slate-900 dark:text-white">Kiosco La Madrina</CardTitle>
+                        <CardDescription className="text-center dark:text-slate-400">
                             Ingresa tus credenciales para acceder al sistema
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="username">Usuario</Label>
+                                <Label htmlFor="username" className="dark:text-slate-300">Usuario</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
                                     <Input
@@ -79,7 +81,7 @@ export default function LoginPage() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="password">Contraseña</Label>
+                                <Label htmlFor="password" className="dark:text-slate-300">Contraseña</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
                                     <Input
@@ -103,10 +105,10 @@ export default function LoginPage() {
                         </form>
                     </CardContent>
                     <CardFooter className="flex flex-col space-y-2">
-                        <Link href="/register" className="text-sm text-indigo-600 hover:underline">
-                            ¿No tienes usuario? Regístrate aquí
-                        </Link>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            ¿No tenés usuario? Pedíselo al administrador.
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-500">
                             Sistema de Gestión v1.0
                         </p>
                     </CardFooter>
