@@ -2,11 +2,8 @@ package devMario.example.kioscoLaMadrina.security.jwt;
 
 import devMario.example.kioscoLaMadrina.security.services.UserDetailsImpl;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -17,11 +14,13 @@ import java.util.Date;
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    @Value("${kiosco.app.jwtSecret}")
-    private String jwtSecret;
+    private final JwtKeyProvider keyProvider;
+    private final JwtProperties properties;
 
-    @Value("${kiosco.app.jwtExpirationMs}")
-    private long jwtExpirationMs;
+    public JwtUtils(JwtKeyProvider keyProvider, JwtProperties properties) {
+        this.keyProvider = keyProvider;
+        this.properties = properties;
+    }
 
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
@@ -29,13 +28,13 @@ public class JwtUtils {
         return Jwts.builder()
                 .setSubject((userPrincipal.getUsername()))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .setExpiration(new Date((new Date()).getTime() + properties.jwtExpirationMs()))
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     private Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        return keyProvider.getSigningKey();
     }
 
     public String getUserNameFromJwtToken(String token) {
