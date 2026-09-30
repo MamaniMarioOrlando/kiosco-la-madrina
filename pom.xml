@@ -193,4 +193,24 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<!--
+			La extensión Java de VS Code (m2e) compila en paralelo a Maven. Si ambos usan target/,
+			un "mvn clean" le borra las clases al IDE, que empieza a mostrar errores falsos, y lo que
+			compila el IDE puede confundir a Maven. Este perfil solo se activa dentro del IDE
+			(m2e define m2e.version) y le asigna su propia carpeta. Maven en consola y en CI no cambia.
+		-->
+		<profile>
+			<id>ide-output</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<build>
+				<directory>${project.basedir}/target-ide</directory>
+			</build>
+		</profile>
+	</profiles>
+
 </project>
