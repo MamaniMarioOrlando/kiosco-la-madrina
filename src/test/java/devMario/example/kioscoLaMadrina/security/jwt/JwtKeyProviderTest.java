@@ -3,6 +3,7 @@ package devMario.example.kioscoLaMadrina.security.jwt;
 import org.junit.jupiter.api.Test;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class JwtKeyProviderTest {
 
-    private static final long ONE_HOUR_MS = 3_600_000;
+    private static final Duration ONE_HOUR = Duration.ofHours(1);
 
     /** Clave de ejemplo de un tutorial muy difundido; la usaba este proyecto. */
     private static final String PUBLIC_TUTORIAL_SECRET =
@@ -70,7 +71,7 @@ class JwtKeyProviderTest {
     }
 
     private static JwtKeyProvider providerFor(String secret) {
-        return new JwtKeyProvider(new JwtProperties(secret, ONE_HOUR_MS));
+        return new JwtKeyProvider(new JwtProperties(secret, ONE_HOUR));
     }
 
     private static String randomBase64Secret(int bytes) {

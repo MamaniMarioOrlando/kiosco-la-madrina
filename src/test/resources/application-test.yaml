@@ -1,7 +1,6 @@
 kiosco:
   app:
     # jwtSecret: se genera aleatoriamente en AbstractIntegrationTest (no se commitean secretos)
-    jwtExpirationMs: 604800000
   bootstrap:
     admin:
       username: admin

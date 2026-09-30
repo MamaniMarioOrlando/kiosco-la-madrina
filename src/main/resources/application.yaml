@@ -34,7 +34,9 @@ server:
 kiosco:
   app:
     jwtSecret: ${JWT_SECRET_KEY:}
-    jwtExpirationMs: 604800000
+    # Un turno de trabajo con margen: el empleado se loguea una vez por turno y una sesión
+    # olvidada en la PC del kiosco se cierra sola. Configurable sin tocar código (p. ej. 8h, 30m).
+    jwtExpiration: ${JWT_EXPIRATION:12h}
   bootstrap:
     admin:
       username: ${ADMIN_USERNAME:}
