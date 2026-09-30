@@ -2,10 +2,9 @@ package devMario.example.kioscoLaMadrina.security.jwt;
 
 import devMario.example.kioscoLaMadrina.security.services.UserDetailsImpl;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -48,18 +47,22 @@ public class JwtUtils {
         return parser.parseSignedClaims(token).getPayload().getSubject();
     }
 
+    /**
+     * Niveles de log según lo que significa cada caso:
+     * - Vencido o vacío (DEBUG): ocurre todos los días; en ERROR taparía los errores reales.
+     * - Firma inválida, mal formado, no soportado (WARN): sospechoso, puede ser un intento de falsificación.
+     * Los catch van del más específico al más general: ExpiredJwtException también es un JwtException.
+     */
     public boolean validateJwtToken(String authToken) {
         try {
             parser.parseSignedClaims(authToken);
             return true;
-        } catch (MalformedJwtException e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            logger.error("JWT token is expired: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            logger.error("JWT token is unsupported: {}", e.getMessage());
+            logger.debug("JWT expired: {}", e.getMessage());
+        } catch (JwtException e) {
+            logger.warn("Rejected invalid JWT ({}): {}", e.getClass().getSimpleName(), e.getMessage());
         } catch (IllegalArgumentException e) {
-            logger.error("JWT claims string is empty: {}", e.getMessage());
+            logger.debug("Empty JWT: {}", e.getMessage());
         }
 
         return false;
