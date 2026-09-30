@@ -53,7 +53,7 @@ ADM=(-H "Authorization: Bearer $ADMIN_TOKEN")
 
 echo
 echo "1) Registro público"
-check "Registrarse como ADMIN sin estar logueado" 404 \
+check "Registrarse como ADMIN sin estar logueado" 401 \
     "$(status -X POST "$API/auth/signup" "${JSON[@]}" -d '{"username":"hacker","email":"h@x.com","password":"12345678","role":["admin"]}')"
 
 echo "2) Login"

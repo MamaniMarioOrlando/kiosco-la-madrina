@@ -4,6 +4,7 @@ import devMario.example.kioscoLaMadrina.security.jwt.AuthEntryPointJwt;
 import devMario.example.kioscoLaMadrina.security.jwt.AuthTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -79,8 +80,9 @@ public class WebSecurityConfig {
                         // El contenedor hace un forward a /error tras un sendError(); si /error exigiera token,
                         // un 403 (sin permisos) le llegaría al cliente como 401 (sesión inválida).
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/test/**").permitAll()
+                        // Mínimo privilegio: solo el login es público (ruta y método exactos). Todo lo demás
+                        // cae en anyRequest().authenticated(), así un endpoint nuevo nunca queda abierto sin querer.
+                        .requestMatchers(HttpMethod.POST, "/api/auth/signin").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Defensa en profundidad: además del @PreAuthorize, se corta en el filtro,
                         // antes de que la validación del body revele detalles a quien no tiene permiso.
