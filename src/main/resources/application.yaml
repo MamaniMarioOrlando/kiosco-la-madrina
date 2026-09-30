@@ -33,7 +33,7 @@ server:
 
 kiosco:
   app:
-    jwtSecret: ${JWT_SECRET_KEY}
+    jwtSecret: ${JWT_SECRET_KEY:}
     jwtExpirationMs: 604800000
   bootstrap:
     admin:
