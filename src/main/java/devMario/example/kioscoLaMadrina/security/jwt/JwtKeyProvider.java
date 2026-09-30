@@ -15,7 +15,8 @@ import java.util.Set;
  *
  * Fail fast: si la clave no es segura, la aplicación no arranca ({@link InsecureJwtSecretException}).
  * Es preferible un deploy fallido (la versión anterior sigue funcionando) a una aplicación en
- * producción donde cualquiera puede firmar tokens de ADMIN. Los mensajes de error nunca incluyen la clave: terminan en los logs.
+ * producción donde cualquiera puede firmar tokens de ADMIN.
+ * Los mensajes de error nunca incluyen la clave: terminan en los logs.
  */
 @Component
 public class JwtKeyProvider {
