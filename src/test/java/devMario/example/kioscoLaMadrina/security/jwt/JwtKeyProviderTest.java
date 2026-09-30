@@ -30,32 +30,32 @@ class JwtKeyProviderTest {
     @Test
     void rejectsAMissingSecret() {
         assertThatThrownBy(() -> providerFor(null))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsecureJwtSecretException.class)
                 .hasMessageContaining("JWT_SECRET_KEY no está definida");
 
         assertThatThrownBy(() -> providerFor("   "))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsecureJwtSecretException.class)
                 .hasMessageContaining("JWT_SECRET_KEY no está definida");
     }
 
     @Test
     void rejectsASecretThatIsNotBase64() {
         assertThatThrownBy(() -> providerFor("esto-no-es-base64!!!"))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsecureJwtSecretException.class)
                 .hasMessageContaining("Base64");
     }
 
     @Test
     void rejectsASecretShorterThan256Bits() {
         assertThatThrownBy(() -> providerFor(randomBase64Secret(16)))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsecureJwtSecretException.class)
                 .hasMessageContaining("256 bits");
     }
 
     @Test
     void rejectsAPubliclyKnownSecret_EvenThoughItIsLongEnough() {
         assertThatThrownBy(() -> providerFor(PUBLIC_TUTORIAL_SECRET))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsecureJwtSecretException.class)
                 .hasMessageContaining("clave de ejemplo pública");
     }
 
