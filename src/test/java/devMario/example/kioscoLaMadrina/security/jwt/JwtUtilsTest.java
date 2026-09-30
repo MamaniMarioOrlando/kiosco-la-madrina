@@ -55,8 +55,8 @@ class JwtUtilsTest {
         JwtKeyProvider keyProvider = new JwtKeyProvider(properties);
         String token = new JwtUtils(keyProvider, properties).generateJwtToken(authenticationFor("cajero"));
 
-        Claims claims = Jwts.parserBuilder().setSigningKey(keyProvider.getSigningKey()).build()
-                .parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parser().verifyWith(keyProvider.getSigningKey()).build()
+                .parseSignedClaims(token).getPayload();
         return Duration.between(claims.getIssuedAt().toInstant(), claims.getExpiration().toInstant());
     }
 

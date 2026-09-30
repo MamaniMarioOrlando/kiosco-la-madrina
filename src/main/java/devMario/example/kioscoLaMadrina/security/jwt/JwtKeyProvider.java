@@ -6,7 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Set;
 
 /**
@@ -31,13 +31,13 @@ public class JwtKeyProvider {
     private static final Set<String> PUBLICLY_KNOWN_SECRETS = Set.of(
             "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970");
 
-    private final Key signingKey;
+    private final SecretKey signingKey;
 
     public JwtKeyProvider(JwtProperties properties) {
         this.signingKey = Keys.hmacShaKeyFor(decodeValidatedSecret(properties.jwtSecret()));
     }
 
-    public Key getSigningKey() {
+    public SecretKey getSigningKey() {
         return signingKey;
     }
 
