@@ -40,6 +40,16 @@ class JwtUtilsTest {
         assertThat(jwtUtils.getUserNameFromJwtToken(token)).isEqualTo("cajero");
     }
 
+    @Test
+    void expiredTokenIsRejected() {
+        // Duración negativa: el token nace vencido (evita un Thread.sleep lento e inestable en el test).
+        JwtUtils jwtUtils = jwtUtilsWith(Duration.ofMinutes(-1));
+
+        String token = jwtUtils.generateJwtToken(authenticationFor("cajero"));
+
+        assertThat(jwtUtils.validateJwtToken(token)).isFalse();
+    }
+
     private static Duration lifetimeOfTokenIssuedWith(Duration configured) {
         JwtProperties properties = new JwtProperties(randomSecret(), configured);
         JwtKeyProvider keyProvider = new JwtKeyProvider(properties);
