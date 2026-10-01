@@ -1,0 +1,18 @@
+# Perfil de DESARROLLO: herramientas que ayudan a programar pero no deben estar en producción.
+# Se activa solo con ./mvnw spring-boot:run (ver spring-boot-maven-plugin en el pom.xml).
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  error:
+    include-message: always
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

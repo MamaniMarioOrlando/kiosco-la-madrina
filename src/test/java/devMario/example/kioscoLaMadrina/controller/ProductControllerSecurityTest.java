@@ -2,7 +2,10 @@ package devMario.example.kioscoLaMadrina.controller;
 
 import devMario.example.kioscoLaMadrina.service.ProductService;
 import org.junit.jupiter.api.Test;
+import devMario.example.kioscoLaMadrina.security.SecurityErrorResponder;
+import devMario.example.kioscoLaMadrina.security.ratelimit.RateLimitConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -14,6 +17,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @WebMvcTest(controllers = ProductController.class)
+// El filtro de rate limiting (capa web) necesita sus políticas y el formato JSON de errores.
+@Import({RateLimitConfig.class, SecurityErrorResponder.class})
 @EnableMethodSecurity
 public class ProductControllerSecurityTest {
 

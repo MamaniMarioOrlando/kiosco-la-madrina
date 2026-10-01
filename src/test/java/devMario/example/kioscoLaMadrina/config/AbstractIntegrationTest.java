@@ -3,7 +3,12 @@ package devMario.example.kioscoLaMadrina.config;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+import java.security.SecureRandom;
+import java.util.Base64;
 
 /**
  * Base de todos los tests de integración.
@@ -23,5 +28,22 @@ public abstract class AbstractIntegrationTest {
 
     static {
         postgres.start();
+    }
+
+    /**
+     * Clave JWT aleatoria por ejecución: ningún secreto queda commiteado en el repositorio,
+     * ni siquiera uno de test (el repo es público y una clave commiteada podría terminar en producción).
+     */
+    private static final String JWT_SECRET = randomBase64Secret();
+
+    @DynamicPropertySource
+    static void jwtProperties(DynamicPropertyRegistry registry) {
+        registry.add("kiosco.app.jwtSecret", () -> JWT_SECRET);
+    }
+
+    private static String randomBase64Secret() {
+        byte[] secret = new byte[32];
+        new SecureRandom().nextBytes(secret);
+        return Base64.getEncoder().encodeToString(secret);
     }
 }

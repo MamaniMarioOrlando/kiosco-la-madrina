@@ -1,3 +1,6 @@
+# Configuración base = PRODUCCIÓN (seguro por defecto). Así corre el .jar en Railway, sin perfiles.
+# Las herramientas de desarrollo están en application-dev.yaml y requieren activar el perfil "dev"
+# (./mvnw spring-boot:run lo activa solo). Si alguien se olvida de activarlo, nada queda expuesto.
 spring:
   application:
     name: kioscoLaMadrina
@@ -15,8 +18,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: true
     open-in-view: false
   flyway:
     enabled: true
@@ -28,13 +29,26 @@ spring:
 
 server:
   port: ${PORT:8080}
-  error:
-    include-message: always
+  # En Railway las conexiones llegan a través de su proxy, que informa la IP del cliente en X-Forwarded-For.
+  # "native" (RemoteIpValve de Tomcat) lee ese encabezado de derecha a izquierda, salteando solo proxies de
+  # confianza (redes internas): la IP que agrega el proxy gana y lo que invente el cliente a la izquierda se
+  # ignora. NO usar "framework": toma la IP de más a la izquierda, que el cliente puede falsificar.
+  forward-headers-strategy: native
+
+# La documentación interactiva de la API (Swagger) es un mapa completo de rutas y campos:
+# solo se publica en desarrollo.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 kiosco:
   app:
-    jwtSecret: ${JWT_SECRET_KEY}
-    jwtExpirationMs: 604800000
+    jwtSecret: ${JWT_SECRET_KEY:}
+    # Un turno de trabajo con margen: el empleado se loguea una vez por turno y una sesión
+    # olvidada en la PC del kiosco se cierra sola. Configurable sin tocar código (p. ej. 8h, 30m).
+    jwtExpiration: ${JWT_EXPIRATION:12h}
   bootstrap:
     admin:
       username: ${ADMIN_USERNAME:}

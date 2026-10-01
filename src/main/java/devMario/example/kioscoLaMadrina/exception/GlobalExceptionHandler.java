@@ -2,6 +2,9 @@ package devMario.example.kioscoLaMadrina.exception;
 
 import devMario.example.kioscoLaMadrina.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
+import devMario.example.kioscoLaMadrina.security.ratelimit.RetryAfter;
+import devMario.example.kioscoLaMadrina.security.ratelimit.TooManyLoginAttemptsException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -59,6 +62,20 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "El recurso solicitado no existe", request);
     }
 
+    // Login bloqueado por intentos fallidos: 429 + Retry-After (estándar HTTP) para que el cliente sepa cuándo reintentar.
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTooManyLoginAttempts(TooManyLoginAttemptsException ex,
+                                                                      HttpServletRequest request) {
+        long seconds = RetryAfter.seconds(ex.getRetryAfter());
+        long minutes = Math.ceilDiv(seconds, 60);
+        String message = "Demasiados intentos fallidos. Volvé a intentar en " + minutes
+                + (minutes == 1 ? " minuto." : " minutos.");
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(seconds))
+                .body(errorBody(HttpStatus.TOO_MANY_REQUESTS, message, request));
+    }
+
     // JSON mal formado o valores inválidos para un enum (p. ej. un rol inexistente).
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponseDTO> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
@@ -114,13 +131,16 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponseDTO> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+        return new ResponseEntity<>(errorBody(status, message, request), status);
+    }
+
+    private static ErrorResponseDTO errorBody(HttpStatus status, String message, HttpServletRequest request) {
+        return new ErrorResponseDTO(
                 LocalDateTime.now(),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
                 request.getRequestURI()
         );
-        return new ResponseEntity<>(errorResponse, status);
     }
 }

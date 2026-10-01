@@ -116,7 +116,10 @@ DB_URL=jdbc:postgresql://localhost:5432/kiosco_db
 DB_USERNAME=postgres
 DB_PASSWORD=password
 # Clave en Base64 de al menos 256 bits. Generala con: openssl rand -base64 32
+# La app no arranca si falta, es corta o es una clave de ejemplo pública.
 JWT_SECRET_KEY=...
+# Opcional: duración de la sesión (por defecto 12h, un turno con margen). Ej.: 8h, 30m
+# JWT_EXPIRATION=12h
 # Primer administrador: se crea al arrancar solo si todavía no existe ningún ADMIN
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=una-contraseña-segura   # mínimo 8 caracteres
@@ -130,12 +133,27 @@ No hay registro público: **solo un ADMIN puede crear usuarios**, desde la panta
 
 Un usuario desactivado pierde el acceso de inmediato, aunque tenga una sesión abierta.
 
+### Protección del login
+Tras **5 contraseñas incorrectas** para una misma cuenta desde la misma red, esa cuenta queda bloqueada
+**hasta 15 minutos** para esa red (respuesta `429` con `Retry-After`). Un empleado que se equivoca no
+bloquea al resto del kiosco, y un atacante no puede bloquear una cuenta desde otra red.
+Además, una misma IP no puede acumular más de 20 intentos fallidos cada 15 minutos entre todas las cuentas.
+Los contadores viven en memoria: reiniciar el backend los limpia.
+
+### Perfiles: desarrollo y producción
+La configuración base (`application.yaml`) es la de **producción** y es segura por defecto:
+sin Swagger, sin SQL en los logs y sin mensajes internos en los errores.
+El perfil **`dev`** (`application-dev.yaml`) habilita esas herramientas y se activa solo con
+`./mvnw spring-boot:run`. El `.jar` de producción corre sin perfil: no hace falta configurar nada.
+
 ### 4. Ejecutar el Backend
 Desde la raíz del proyecto:
 ```bash
 ./mvnw spring-boot:run
 ```
-El servidor backend correrá en `http://localhost:8080`.
+El servidor backend correrá en `http://localhost:8080`, con el perfil `dev` activo.
+La documentación interactiva de la API (Swagger) queda en `http://localhost:8080/swagger-ui/index.html`
+(solo en desarrollo).
 
 ### 5. Ejecutar el Frontend
 Abre una nueva terminal y navega a la carpeta frontend:

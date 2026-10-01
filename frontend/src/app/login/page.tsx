@@ -12,6 +12,26 @@ import { isAxiosError } from 'axios';
 import { startSession } from '@/lib/session';
 import { motion } from 'framer-motion';
 
+/** Traduce el error del login a un mensaje para el usuario. Función pura: mismo error, mismo mensaje. */
+function loginErrorMessage(err: unknown): string {
+    if (!isAxiosError<{ message?: string }>(err)) {
+        return 'Ocurrió un error inesperado. Intentá de nuevo.';
+    }
+    if (!err.response) {
+        return 'No se pudo conectar con el servidor';
+    }
+
+    switch (err.response.status) {
+        case 401:
+            return 'Usuario o contraseña incorrectos';
+        case 429:
+            // El backend indica cuántos minutos esperar ("Volvé a intentar en 15 minutos.").
+            return err.response.data?.message ?? 'Demasiados intentos fallidos. Esperá unos minutos.';
+        default:
+            return 'Error en el servidor. Intentá de nuevo en unos minutos.';
+    }
+}
+
 export default function LoginPage() {
     const router = useRouter();
     const [username, setUsername] = useState('');
@@ -36,14 +56,8 @@ export default function LoginPage() {
 
             router.push('/');
         } catch (err) {
-            // Sin console.error: un 401 acá es un caso esperado (credenciales inválidas), no un bug.
-            if (isAxiosError(err) && err.response?.status === 401) {
-                setError('Usuario o contraseña incorrectos');
-            } else if (isAxiosError(err) && err.response) {
-                setError('Error en el servidor. Intentá de nuevo en unos minutos.');
-            } else {
-                setError('No se pudo conectar con el servidor');
-            }
+            // Sin console.error: 401 y 429 son casos esperados, no bugs.
+            setError(loginErrorMessage(err));
         } finally {
             setLoading(false);
         }

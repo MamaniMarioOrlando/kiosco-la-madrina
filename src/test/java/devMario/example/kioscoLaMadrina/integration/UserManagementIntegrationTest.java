@@ -40,12 +40,13 @@ class UserManagementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void publicSignupEndpoint_NoLongerExists() throws Exception {
+        // 401 y no 404: con "denegar por defecto" un anónimo no puede averiguar qué rutas existen.
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"username":"hacker","email":"h@x.com","password":"123456","role":["admin"]}
                                 """))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnauthorized());
 
         assertThat(userRepository.findByUsername("hacker")).isEmpty();
     }

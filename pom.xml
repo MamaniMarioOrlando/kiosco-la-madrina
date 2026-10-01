@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<jjwt.version>0.13.0</jjwt.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -64,6 +65,11 @@
 		</dependency>
 		
 		<!-- Rate Limiting (Proteccion DDoS) -->
+		<!-- Cache acotada para los baldes de rate limiting (versión gestionada por Spring Boot) -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j-core</artifactId>
@@ -128,18 +134,18 @@
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
-			<version>0.11.5</version>
+			<version>${jjwt.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
-			<version>0.11.5</version>
+			<version>${jjwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
-			<version>0.11.5</version>
+			<version>${jjwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -172,6 +178,10 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<!-- ./mvnw spring-boot:run = desarrollo local. El .jar de producción no pasa por acá. -->
+					<profiles>
+						<profile>dev</profile>
+					</profiles>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
@@ -192,5 +202,25 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<!--
+			La extensión Java de VS Code (m2e) compila en paralelo a Maven. Si ambos usan target/,
+			un "mvn clean" le borra las clases al IDE, que empieza a mostrar errores falsos, y lo que
+			compila el IDE puede confundir a Maven. Este perfil solo se activa dentro del IDE
+			(m2e define m2e.version) y le asigna su propia carpeta. Maven en consola y en CI no cambia.
+		-->
+		<profile>
+			<id>ide-output</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<build>
+				<directory>${project.basedir}/target-ide</directory>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

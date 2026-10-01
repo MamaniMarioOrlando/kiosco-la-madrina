@@ -5,6 +5,7 @@ import devMario.example.kioscoLaMadrina.dto.JwtResponseDTO;
 import devMario.example.kioscoLaMadrina.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,8 @@ public class AuthController {
 
     @Operation(summary = "Sign in user", description = "Authenticates a user and returns a JWT token.")
     @PostMapping("/signin")
-    public JwtResponseDTO authenticateUser(@Valid @RequestBody AuthRequestDTO loginRequest) {
-        return authService.login(loginRequest);
+    public JwtResponseDTO authenticateUser(@Valid @RequestBody AuthRequestDTO loginRequest,
+                                           HttpServletRequest request) {
+        return authService.login(loginRequest, request.getRemoteAddr());
     }
 }
