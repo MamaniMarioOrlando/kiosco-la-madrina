@@ -28,6 +28,11 @@ spring:
 
 server:
   port: ${PORT:8080}
+  # En Railway las conexiones llegan a través de su proxy, que informa la IP del cliente en X-Forwarded-For.
+  # "native" (RemoteIpValve de Tomcat) lee ese encabezado de derecha a izquierda, salteando solo proxies de
+  # confianza (redes internas): la IP que agrega el proxy gana y lo que invente el cliente a la izquierda se
+  # ignora. NO usar "framework": toma la IP de más a la izquierda, que el cliente puede falsificar.
+  forward-headers-strategy: native
   error:
     include-message: always
 
