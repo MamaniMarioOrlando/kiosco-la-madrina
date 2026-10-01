@@ -65,6 +65,11 @@
 		</dependency>
 		
 		<!-- Rate Limiting (Proteccion DDoS) -->
+		<!-- Cache acotada para los baldes de rate limiting (versión gestionada por Spring Boot) -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j-core</artifactId>
