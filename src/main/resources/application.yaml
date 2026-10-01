@@ -34,6 +34,14 @@ server:
   # confianza (redes internas): la IP que agrega el proxy gana y lo que invente el cliente a la izquierda se
   # ignora. NO usar "framework": toma la IP de más a la izquierda, que el cliente puede falsificar.
   forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      # Proxies de confianza: el valor por defecto de Spring Boot (redes privadas IPv4 y ::1) MÁS las
+      # redes privadas IPv6 fc00::/7 (fcXX:/fdXX:), que usa la red interna de Railway. Con el valor por
+      # defecto, en Railway la app veía la IP del proxy y todos los clientes compartían los límites de login.
+      # Para revisar qué ve la app en producción: LOGGING_LEVEL_KIOSCO_CLIENTIP=DEBUG (ClientIpLoggingFilter).
+      # Solo direcciones privadas: nunca llegan desde internet, así que un cliente no puede hacerse pasar por proxy.
+      internal-proxies: '10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|100\.6[4-9]{1}\.\d{1,3}\.\d{1,3}|100\.[7-9]{1}\d{1}\.\d{1,3}\.\d{1,3}|100\.1[0-1]{1}\d{1}\.\d{1,3}\.\d{1,3}|100\.12[0-7]{1}\.\d{1,3}\.\d{1,3}|172\.1[6-9]{1}\.\d{1,3}\.\d{1,3}|172\.2[0-9]{1}\.\d{1,3}\.\d{1,3}|172\.3[0-1]{1}\.\d{1,3}\.\d{1,3}|0:0:0:0:0:0:0:1|::1|f[cd][0-9a-fA-F]{2}:.*'
 
 # La documentación interactiva de la API (Swagger) es un mapa completo de rutas y campos:
 # solo se publica en desarrollo.
