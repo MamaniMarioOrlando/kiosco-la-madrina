@@ -1,6 +1,7 @@
 package devMario.example.kioscoLaMadrina.security;
 
 import devMario.example.kioscoLaMadrina.security.ratelimit.BucketRegistry;
+import devMario.example.kioscoLaMadrina.security.ratelimit.RetryAfter;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /** Límite general de pedidos a la API por IP (algoritmo token bucket). */
 @Component
@@ -37,7 +38,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             ConsumptionProbe probe = apiRateLimits.bucketFor(request.getRemoteAddr()).tryConsumeAndReturnRemaining(1);
             if (!probe.isConsumed()) {
                 // Retry-After (estándar HTTP): en cuántos segundos llega la próxima ficha.
-                long seconds = Math.max(1, TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill()) + 1);
+                long seconds = RetryAfter.seconds(Duration.ofNanos(probe.getNanosToWaitForRefill()));
                 response.setHeader(HttpHeaders.RETRY_AFTER, String.valueOf(seconds));
                 errorResponder.write(request, response, HttpStatus.TOO_MANY_REQUESTS,
                         "Demasiadas peticiones. Esperá unos segundos y volvé a intentar.");
