@@ -3,6 +3,7 @@ package devMario.example.kioscoLaMadrina.controller;
 import devMario.example.kioscoLaMadrina.dto.ProductDTO;
 import devMario.example.kioscoLaMadrina.service.ProductService;
 import org.junit.jupiter.api.Test;
+import devMario.example.kioscoLaMadrina.security.SecurityErrorResponder;
 import devMario.example.kioscoLaMadrina.security.ratelimit.RateLimitConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -20,7 +21,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = ProductController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class })
-@Import(RateLimitConfig.class) // el filtro de rate limiting (capa web) necesita sus políticas
+// El filtro de rate limiting (capa web) necesita sus políticas y el formato JSON de errores.
+@Import({RateLimitConfig.class, SecurityErrorResponder.class})
 public class ProductControllerTest {
 
     @Autowired
