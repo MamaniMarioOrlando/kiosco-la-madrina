@@ -4,5 +4,8 @@ import devMario.example.kioscoLaMadrina.dto.AuthRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.JwtResponseDTO;
 
 public interface AuthService {
-    JwtResponseDTO login(AuthRequestDTO request);
+    /**
+     * @param clientIp IP de quien intenta loguearse, para el límite de intentos fallidos
+     */
+    JwtResponseDTO login(AuthRequestDTO request, String clientIp);
 }
