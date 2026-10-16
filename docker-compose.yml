@@ -3,7 +3,9 @@ services:
     image: postgres:16
     container_name: kiosco-postgres
     ports:
-      - "5432:5432"
+      # Solo para desarrollo local. 5433 en la máquina (dentro del contenedor sigue siendo 5432)
+      # para no chocar con otros proyectos que usan el 5432. Producción usa Neon, no este archivo.
+      - "5433:5432"
     environment:
       - POSTGRES_DB=kiosco_db
       - POSTGRES_USER=postgres

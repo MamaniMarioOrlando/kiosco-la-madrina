@@ -14,12 +14,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * CORS: el navegador solo debe permitir que llamen a la API los orígenes configurados en ALLOWED_ORIGINS.
- * Por defecto (sin la variable) es http://localhost:3000.
+ * Por defecto (sin la variable) es http://localhost:3001, el puerto del frontend en desarrollo.
  */
 @ActiveProfiles("test")
 class CorsIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String ALLOWED_ORIGIN = "http://localhost:3000";
+    private static final String ALLOWED_ORIGIN = "http://localhost:3001";
     private static final String EVIL_ORIGIN = "https://evil.example";
 
     @Autowired

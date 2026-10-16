@@ -97,7 +97,7 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    @org.springframework.beans.factory.annotation.Value("${ALLOWED_ORIGINS:http://localhost:3000}")
+    @org.springframework.beans.factory.annotation.Value("${ALLOWED_ORIGINS:http://localhost:3001}")
     private String allowedOrigins;
 
     @Bean

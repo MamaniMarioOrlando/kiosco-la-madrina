@@ -81,7 +81,7 @@ Esto creará un contenedor llamado `kiosco-postgres` con:
 - **DB**: `kiosco_db`
 - **User**: `postgres`
 - **Password**: `password`
-- **Puerto**: `5432`
+- **Puerto en tu máquina**: `5433` (dentro del contenedor, `5432`). Se usa el 5433 para no chocar con otros proyectos.
 
 ---
 
@@ -112,7 +112,7 @@ docker compose up -d
 ### 3. Configurar las variables de entorno
 Creá un archivo `.env` en la raíz (está en `.gitignore`, nunca lo commitees):
 ```bash
-DB_URL=jdbc:postgresql://localhost:5432/kiosco_db
+DB_URL=jdbc:postgresql://localhost:5433/kiosco_db
 DB_USERNAME=postgres
 DB_PASSWORD=password
 # Clave en Base64 de al menos 256 bits. Generala con: openssl rand -base64 32
@@ -162,7 +162,7 @@ cd frontend
 npm install
 npm run dev
 ```
-La aplicación estará disponible en `http://localhost:3000`.
+La aplicación estará disponible en `http://localhost:3001`.
 
 ---
 
