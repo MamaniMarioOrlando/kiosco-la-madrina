@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.regex.Pattern;
@@ -13,42 +13,36 @@ import java.util.regex.Pattern;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Qué direcciones trata Tomcat como proxy de confianza al leer X-Forwarded-For.
- * Railway conecta su proxy al contenedor por su red interna IPv6, que el valor por defecto
- * de Spring Boot no incluye: por eso la app veía la IP del proxy en lugar de la del cliente.
- * Solo pueden ser de confianza direcciones privadas, que nunca llegan desde internet.
+ * Proxies de los que se acepta X-Forwarded-For con la configuración por defecto (segura).
+ * Solo redes privadas: un cliente de internet no puede hacerse pasar por proxy para falsificar su IP.
+ * Por eso en Railway, cuyos proxies tienen IPs públicas, hay que habilitarlo con
+ * SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES (ver application.yaml).
  */
 @ActiveProfiles("test")
 class TrustedProxiesIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private Environment environment;
+    private ServerProperties serverProperties;
 
     private Pattern trustedProxies;
 
     @BeforeEach
-    void loadConfiguredPattern() {
-        trustedProxies = Pattern.compile(environment.getRequiredProperty("server.tomcat.remoteip.internal-proxies"));
+    void loadDefaultPattern() {
+        trustedProxies = Pattern.compile(serverProperties.getTomcat().getRemoteip().getInternalProxies());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "fd12:3456:789a::1",      // red privada IPv6 (Railway)
-            "fc00::1",
-            "10.0.0.5", "192.168.1.10", "172.16.0.1", "100.64.0.1", "127.0.0.1", "::1"
-    })
-    void privateAddressesAreTrusted(String address) {
+    @ValueSource(strings = {"10.0.0.5", "192.168.1.10", "172.16.0.1", "100.64.0.1", "127.0.0.1", "::1"})
+    void privateAddressesAreTrustedByDefault(String address) {
         assertThat(trustedProxies.matcher(address).matches()).isTrue();
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "2001:db8::1",            // IPv6 pública: un cliente, nunca un proxy de confianza
-            "2800:810:4a5::1",
-            "203.0.113.5", "181.45.10.20", "8.8.8.8",
-            "fe00::1"                 // no es parte de fc00::/7
+            "152.233.23.193", "152.233.23.194",   // proxies de Railway observados en producción
+            "203.0.113.5", "8.8.8.8", "2001:db8::1"
     })
-    void publicAddressesAreNotTrusted(String address) {
+    void publicAddressesAreNotTrustedByDefault(String address) {
         assertThat(trustedProxies.matcher(address).matches()).isFalse();
     }
 }
