@@ -166,6 +166,36 @@ La aplicación estará disponible en `http://localhost:3000`.
 
 ---
 
+## ☁️ Despliegue en producción
+
+```text
+Vercel (frontend Next.js)  →  Railway (backend Spring Boot, Dockerfile)  →  Neon (PostgreSQL)
+```
+Cada merge a `main` despliega automáticamente en Vercel y Railway. El backend corre sin perfil activo,
+o sea con la configuración segura por defecto.
+
+### Variables en Railway
+| Variable | Valor | Para qué |
+|---|---|---|
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Datos de conexión de Neon | Base de datos |
+| `JWT_SECRET_KEY` | `openssl rand -base64 32` | Firma de las sesiones. La app no arranca si es insegura |
+| `ALLOWED_ORIGINS` | `https://kiosco-la-madrina.vercel.app` | CORS: solo el frontend puede llamar a la API. **Nunca `*`** |
+| `SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES` | `.*` | Confiar en el proxy de Railway para obtener la IP real del cliente. Sin esto, el bloqueo de login se comparte entre todos los usuarios |
+| `JWT_EXPIRATION` | *(opcional)* | Duración de la sesión. Por defecto `12h` |
+
+`SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES=.*` es seguro **solo en Railway**: el contenedor no es accesible
+directamente y su proxy reemplaza `X-Forwarded-For` con la IP real, descartando lo que envíe el cliente
+(verificado en producción). No usar ese valor en un servidor expuesto directamente a internet.
+
+### Variables en Vercel
+| Variable | Valor |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://<servicio>.up.railway.app/api` |
+
+### Diagnóstico
+`LOGGING_LEVEL_KIOSCO_CLIENTIP=DEBUG` en Railway registra, en cada pedido, qué IP ve la aplicación y qué
+informan los encabezados del proxy. Usarla solo mientras se investiga un problema y después borrarla.
+
 ## 🌓 Configuración de Temas
 La aplicación soporta **Modo Oscuro** y **Modo Claro**. Puedes cambiar el tema desde el interruptor ubicado en la barra superior derecha. La preferencia se guardará automáticamente en tu navegador.
 
