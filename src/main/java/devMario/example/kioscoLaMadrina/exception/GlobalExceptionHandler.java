@@ -4,6 +4,8 @@ import devMario.example.kioscoLaMadrina.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import devMario.example.kioscoLaMadrina.security.ratelimit.RetryAfter;
 import devMario.example.kioscoLaMadrina.security.ratelimit.TooManyLoginAttemptsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,28 +40,16 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponseDTO> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ConflictException.class)
@@ -85,37 +75,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .header(HttpHeaders.RETRY_AFTER, String.valueOf(seconds))
-                .body(errorBody(HttpStatus.TOO_MANY_REQUESTS, message, request));
+                .body(errorBody(HttpStatus.TOO_MANY_REQUESTS, message, request.getRequestURI()));
     }
 
     
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDTO> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
-                LocalDateTime.now(),
-                HttpStatus.FORBIDDEN.value(),
-                HttpStatus.FORBIDDEN.getReasonPhrase(),
-                "No tienes permisos suficientes para realizar esta acción.",
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        return buildResponse(HttpStatus.FORBIDDEN, "No tienes permisos suficientes para realizar esta acción.", request);
     }
 
-    // Fallback for any other unexpected exception (500 Internal Server Error)
+    // Cualquier otra excepción es un error real del servidor: se registra completa para poder corregirla,
+    // pero el cliente recibe un mensaje genérico (sin detalles internos).
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGlobalException(Exception ex, HttpServletRequest request) {
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Ocurrió un error inesperado en el servidor. Por favor, contacta al soporte técnico.",
-                request.getRequestURI()
-        );
-        
-        // Log the actual exception for developers to fix
-        ex.printStackTrace();
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Ocurrió un error inesperado en el servidor. Por favor, contacta al soporte técnico.", request);
     }
 
     /**
@@ -127,9 +102,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                              HttpStatusCode statusCode, WebRequest request) {
         String path = ((ServletWebRequest) request).getRequest().getRequestURI();
         HttpStatus status = HttpStatus.valueOf(statusCode.value());
-        ErrorResponseDTO error = new ErrorResponseDTO(
-                LocalDateTime.now(), status.value(), status.getReasonPhrase(), protocolErrorMessage(ex), path);
-        return new ResponseEntity<>(error, headers, statusCode);
+        return new ResponseEntity<>(errorBody(status, protocolErrorMessage(ex), path), headers, statusCode);
     }
 
     private static String protocolErrorMessage(Exception ex) {
@@ -149,16 +122,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponseDTO> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
-        return new ResponseEntity<>(errorBody(status, message, request), status);
+        return new ResponseEntity<>(errorBody(status, message, request.getRequestURI()), status);
     }
 
-    private static ErrorResponseDTO errorBody(HttpStatus status, String message, HttpServletRequest request) {
-        return new ErrorResponseDTO(
-                LocalDateTime.now(),
-                status.value(),
-                status.getReasonPhrase(),
-                message,
-                request.getRequestURI()
-        );
+    /** Único lugar que define el formato de los errores de la API. */
+    private static ErrorResponseDTO errorBody(HttpStatus status, String message, String path) {
+        return new ErrorResponseDTO(LocalDateTime.now(), status.value(), status.getReasonPhrase(), message, path);
     }
 }
