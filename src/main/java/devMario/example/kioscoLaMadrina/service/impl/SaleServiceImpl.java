@@ -1,6 +1,7 @@
 package devMario.example.kioscoLaMadrina.service.impl;
 
 import devMario.example.kioscoLaMadrina.dto.SaleItemRequestDTO;
+import devMario.example.kioscoLaMadrina.exception.InsufficientStockException;
 import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
 import devMario.example.kioscoLaMadrina.model.*;
@@ -49,7 +50,7 @@ public class SaleServiceImpl implements SaleService {
             Product product = productRepository.getRequiredById(item.productId());
 
             if (product.getStockQuantity() < item.quantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+                throw new InsufficientStockException(product.getName(), item.quantity(), product.getStockQuantity());
             }
 
             // Update Stock

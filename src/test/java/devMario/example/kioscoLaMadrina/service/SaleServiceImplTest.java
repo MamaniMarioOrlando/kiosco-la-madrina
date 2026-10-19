@@ -1,5 +1,6 @@
 package devMario.example.kioscoLaMadrina.service;
 
+import devMario.example.kioscoLaMadrina.exception.InsufficientStockException;
 import devMario.example.kioscoLaMadrina.exception.ResourceNotFoundException;
 import devMario.example.kioscoLaMadrina.dto.SaleItemRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
@@ -112,12 +113,12 @@ public class SaleServiceImplTest {
 
                 // 2 & 3. ACT & ASSERT
                 // Aseguramos que lanzar una venta así, obligatoriamente
-                // explote con una RuntimeException
-                RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+                // explote con una InsufficientStockException (la API responde 409)
+                InsufficientStockException exception = assertThrows(InsufficientStockException.class, () -> {
                         saleService.createSale(request, "testadmin");
                 });
 
-                assertEquals("Insufficient stock for product: Coca-Cola",
+                assertEquals("Stock insuficiente para Coca-Cola: pediste 15, quedan 10",
                                 exception.getMessage());
 
                 // Verificar que el stock NO SE TOCÓ
