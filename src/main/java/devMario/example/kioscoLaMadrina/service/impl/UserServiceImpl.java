@@ -69,8 +69,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateAvatar(String username, String avatarUrl) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario autenticado"));
+        User user = userRepository.getRequiredByUsername(username);
         user.setAvatarUrl(avatarUrl);
     }
 

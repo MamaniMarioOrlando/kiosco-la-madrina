@@ -33,8 +33,7 @@ public class SaleServiceImpl implements SaleService {
 
     @Override
     public SaleResponseDTO createSale(SaleRequestDTO request, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.getRequiredByUsername(username);
 
         Sale sale = new Sale();
         sale.setUser(user);
@@ -47,8 +46,7 @@ public class SaleServiceImpl implements SaleService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (SaleItemRequestDTO item : request.items()) {
-            Product product = productRepository.findById(item.productId())
-                    .orElseThrow(() -> new RuntimeException("Product not found: " + item.productId()));
+            Product product = productRepository.getRequiredById(item.productId());
 
             if (product.getStockQuantity() < item.quantity()) {
                 throw new RuntimeException("Insufficient stock for product: " + product.getName());

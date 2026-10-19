@@ -1,7 +1,6 @@
 package devMario.example.kioscoLaMadrina.service.impl;
 
 import devMario.example.kioscoLaMadrina.dto.ProductDTO;
-import devMario.example.kioscoLaMadrina.model.Category;
 import devMario.example.kioscoLaMadrina.model.Product;
 import devMario.example.kioscoLaMadrina.repository.CategoryRepository;
 import devMario.example.kioscoLaMadrina.repository.ProductRepository;
@@ -38,9 +37,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductDTO findById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-        return productMapper.toDTO(product);
+        return productMapper.toDTO(productRepository.getRequiredById(id));
     }
 
     @Override
@@ -48,9 +45,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.toEntity(productDTO);
 
         if (productDTO.categoryId() != null) {
-            Category category = categoryRepository.findById(productDTO.categoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-            product.setCategory(category);
+            product.setCategory(categoryRepository.getRequiredById(productDTO.categoryId()));
         }
 
         Product savedProduct = productRepository.save(product);
@@ -59,8 +54,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDTO update(Long id, ProductDTO productDTO) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        Product product = productRepository.getRequiredById(id);
 
         product.setName(productDTO.name());
         product.setPrice(productDTO.price());
@@ -68,9 +62,7 @@ public class ProductServiceImpl implements ProductService {
         product.setBarcode(productDTO.barcode());
 
         if (productDTO.categoryId() != null) {
-            Category category = categoryRepository.findById(productDTO.categoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-            product.setCategory(category);
+            product.setCategory(categoryRepository.getRequiredById(productDTO.categoryId()));
         }
 
         Product updatedProduct = productRepository.save(product);
@@ -79,9 +71,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void delete(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new RuntimeException("Product not found");
-        }
-        productRepository.deleteById(id);
+        productRepository.delete(productRepository.getRequiredById(id));
     }
 }
