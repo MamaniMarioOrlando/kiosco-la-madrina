@@ -1,5 +1,7 @@
 package devMario.example.kioscoLaMadrina.service;
 
+import devMario.example.kioscoLaMadrina.exception.InsufficientStockException;
+import devMario.example.kioscoLaMadrina.exception.ResourceNotFoundException;
 import devMario.example.kioscoLaMadrina.dto.SaleItemRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
@@ -20,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -66,11 +67,8 @@ public class SaleServiceImplTest {
                 SaleItemRequestDTO item = new SaleItemRequestDTO(1L, 3); // Intentamos comprar 3 unidades
                 SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
-                when(userRepository
-                                .findByUsername("testadmin"))
-                                .thenReturn(Optional.of(testUser));
-                when(productRepository.findById(1L))
-                                .thenReturn(Optional.of(testProduct));
+                when(userRepository.getRequiredByUsername("testadmin")).thenReturn(testUser);
+                when(productRepository.getRequiredById(1L)).thenReturn(testProduct);
 
                 // Cuando guarde la venta, devolveremos la misma venta
                 when(saleRepository
@@ -110,21 +108,17 @@ public class SaleServiceImplTest {
                 SaleItemRequestDTO item = new SaleItemRequestDTO(1L, 15);
                 SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
-                when(userRepository
-                                .findByUsername("testadmin"))
-                                .thenReturn(Optional.of(testUser));
-                when(productRepository
-                                .findById(1L))
-                                .thenReturn(Optional.of(testProduct));
+                when(userRepository.getRequiredByUsername("testadmin")).thenReturn(testUser);
+                when(productRepository.getRequiredById(1L)).thenReturn(testProduct);
 
                 // 2 & 3. ACT & ASSERT
                 // Aseguramos que lanzar una venta así, obligatoriamente
-                // explote con una RuntimeException
-                RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+                // explote con una InsufficientStockException (la API responde 409)
+                InsufficientStockException exception = assertThrows(InsufficientStockException.class, () -> {
                         saleService.createSale(request, "testadmin");
                 });
 
-                assertEquals("Insufficient stock for product: Coca-Cola",
+                assertEquals("Stock insuficiente para Coca-Cola: pediste 15, quedan 10",
                                 exception.getMessage());
 
                 // Verificar que el stock NO SE TOCÓ
@@ -141,17 +135,16 @@ public class SaleServiceImplTest {
         SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
         // Simulamos que el usuario fue borrado o no existe
-        when(userRepository.findByUsername("hacker_user")).thenReturn(Optional.empty());
+        when(userRepository.getRequiredByUsername("hacker_user"))
+                .thenThrow(new ResourceNotFoundException("No se encontró el usuario hacker_user"));
 
         // 2 & 3. ACT & ASSERT
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        assertThrows(ResourceNotFoundException.class, () -> {
             saleService.createSale(request, "hacker_user");
         });
 
-        assertEquals("User not found", exception.getMessage());
-        
         // Verificamos que no se buscó ningún producto ni se guardó nada
-        verify(productRepository, never()).findById(anyLong());
+        verify(productRepository, never()).getRequiredById(anyLong());
         verify(saleRepository, never()).save(any(Sale.class));
     }
 
@@ -161,15 +154,14 @@ public class SaleServiceImplTest {
         SaleItemRequestDTO item = new SaleItemRequestDTO(99L, 1); // ID 99 no existe
         SaleRequestDTO request = new SaleRequestDTO(List.of(item), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
-        when(userRepository.findByUsername("testadmin")).thenReturn(Optional.of(testUser));
-        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+        when(userRepository.getRequiredByUsername("testadmin")).thenReturn(testUser);
+        when(productRepository.getRequiredById(99L))
+                .thenThrow(new ResourceNotFoundException("No se encontró el producto con id 99"));
 
         // 2 & 3. ACT & ASSERT
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        assertThrows(ResourceNotFoundException.class, () -> {
             saleService.createSale(request, "testadmin");
         });
-
-        assertEquals("Product not found: 99", exception.getMessage());
         verify(saleRepository, never()).save(any(Sale.class));
     }
 
@@ -189,9 +181,9 @@ public class SaleServiceImplTest {
                 new SaleItemRequestDTO(2L, 5)
         ), devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
 
-        when(userRepository.findByUsername("testadmin")).thenReturn(Optional.of(testUser));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
-        when(productRepository.findById(2L)).thenReturn(Optional.of(doritos));
+        when(userRepository.getRequiredByUsername("testadmin")).thenReturn(testUser);
+        when(productRepository.getRequiredById(1L)).thenReturn(testProduct);
+        when(productRepository.getRequiredById(2L)).thenReturn(doritos);
         
         when(saleRepository.save(any(Sale.class))).thenAnswer(invocation -> invocation.getArgument(0));
         

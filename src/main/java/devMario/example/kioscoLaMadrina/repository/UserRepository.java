@@ -1,5 +1,6 @@
 package devMario.example.kioscoLaMadrina.repository;
 
+import devMario.example.kioscoLaMadrina.exception.ResourceNotFoundException;
 import devMario.example.kioscoLaMadrina.model.Role;
 import devMario.example.kioscoLaMadrina.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     boolean existsByRole(Role role);
+
+    /** Busca un usuario que debe existir (p. ej. el autenticado); si no existe, la API responde 404. */
+    default User getRequiredByUsername(String username) {
+        return findByUsername(username).orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el usuario " + username));
+    }
 }

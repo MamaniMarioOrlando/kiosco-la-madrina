@@ -1,5 +1,7 @@
 package devMario.example.kioscoLaMadrina.service;
 
+import devMario.example.kioscoLaMadrina.exception.ResourceNotFoundException;
+import devMario.example.kioscoLaMadrina.model.Product;
 import devMario.example.kioscoLaMadrina.repository.ProductRepository;
 import devMario.example.kioscoLaMadrina.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -23,17 +25,17 @@ public class ProductServiceImplTest {
     @Test
     void testDeleteProduct_Success_TestingVoid() {
         // 1. ARRANGE
-        // La lógica en ProductServiceImpl dice: if (!existsById(id))
-        // throw error.
-        // Falsificamos para que MIENTA y diga que sí existe.
-        when(productRepository.existsById(1L)).thenReturn(true);
+        // ProductServiceImpl busca el producto con getRequiredById (404 si no existe).
+        // Falsificamos para que MIENTA y devuelva un producto existente.
+        Product existing = new Product();
+        when(productRepository.getRequiredById(1L)).thenReturn(existing);
 
-        // NO podemos usar when(repo.deleteById).thenReturn(true)...
-        // ¡porque deleteById no devuelve nada (void)!
+        // NO podemos usar when(repo.delete).thenReturn(true)...
+        // ¡porque delete no devuelve nada (void)!
         // En Mockito, por defecto, los métodos void de un @Mock
         // literalmenten "no hacen nada", lo cual es perfecto.
         // Podríamos forzarlo con:
-        // doNothing().when(productRepository).deleteById(1L);
+        // doNothing().when(productRepository).delete(existing);
         // (pero no es obligatorio)
 
         // 2. ACT
@@ -49,8 +51,8 @@ public class ProductServiceImplTest {
         // para analizar con assertEquals...
         // ...auditamos al propio repositorio para confirmar que Java
         // le dio la orden final de matar al registro.
-        verify(productRepository, times(1)).existsById(1L);
-        verify(productRepository, times(1)).deleteById(1L);
+        verify(productRepository, times(1)).getRequiredById(1L);
+        verify(productRepository, times(1)).delete(existing);
     }
 
     @Test
@@ -58,21 +60,20 @@ public class ProductServiceImplTest {
         // 1. ARRANGE
         // Simulamos que el Kiosquero intentó borrar
         // el producto fantasma "99"
-        when(productRepository.existsById(99L)).thenReturn(false);
+        when(productRepository.getRequiredById(99L))
+                .thenThrow(new ResourceNotFoundException("No se encontró el producto con id 99"));
 
         // 2 & 3. ACT & ASSERT
-        // Esto captura la excepción justo antes de que rompa
-        // el servidor
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        // Esto captura la excepción justo antes de que llegue al cliente
+        // (el GlobalExceptionHandler la convierte en un 404)
+        assertThrows(ResourceNotFoundException.class, () -> {
             productService.delete(99L);
         });
 
-        assertEquals("Product not found", exception.getMessage());
-
         // Verificaciones Policiales:
-        verify(productRepository, times(1)).existsById(99L);
+        verify(productRepository, times(1)).getRequiredById(99L);
         // Sí buscaron el ID 99
-        verify(productRepository, never()).deleteById(anyLong());
+        verify(productRepository, never()).delete(any(Product.class));
         // Pero jamás dispararon la orden de borrar en la BD
     }
 }

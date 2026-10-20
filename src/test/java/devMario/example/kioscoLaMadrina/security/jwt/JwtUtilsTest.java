@@ -112,10 +112,15 @@ class JwtUtilsTest {
         assertThat(logs.list).extracting(ILoggingEvent::getLevel).containsOnly(Level.DEBUG);
     }
 
-    /** Cambia el último carácter de la firma: el token parece válido pero no fue firmado con nuestra clave. */
+    /**
+     * Cambia el primer carácter de la firma: el token parece válido pero no fue firmado con nuestra clave.
+     * No se usa el último: en Base64 sus bits finales son relleno y se ignoran al decodificar, así que
+     * cambiarlo a veces no altera la firma (el test fallaba ~1 de cada 16 veces).
+     */
     private static String tamperSignature(String token) {
-        char last = token.charAt(token.length() - 1);
-        return token.substring(0, token.length() - 1) + (last == 'A' ? 'B' : 'A');
+        int signatureStart = token.lastIndexOf('.') + 1;
+        char first = token.charAt(signatureStart);
+        return token.substring(0, signatureStart) + (first == 'A' ? 'B' : 'A') + token.substring(signatureStart + 1);
     }
 
     private static Duration lifetimeOfTokenIssuedWith(Duration configured) {
