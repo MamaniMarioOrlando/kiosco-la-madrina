@@ -49,13 +49,12 @@ public class SaleServiceImpl implements SaleService {
         for (SaleItemRequestDTO item : request.items()) {
             Product product = productRepository.getRequiredById(item.productId());
 
-            if (product.getStockQuantity() < item.quantity()) {
+            // Verificar y descontar en un solo paso atómico: leer el stock acá y restarlo después
+            // permitía que varias cajas vendieran la misma unidad. Si falla, la transacción entera
+            // se revierte (incluidos los ítems ya descontados de esta venta).
+            if (productRepository.decreaseStockIfAvailable(product.getId(), item.quantity()) == 0) {
                 throw new InsufficientStockException(product.getName(), item.quantity(), product.getStockQuantity());
             }
-
-            // Update Stock
-            product.setStockQuantity(product.getStockQuantity() - item.quantity());
-            productRepository.save(product);
 
             SaleDetail detail = new SaleDetail();
             detail.setSale(sale);

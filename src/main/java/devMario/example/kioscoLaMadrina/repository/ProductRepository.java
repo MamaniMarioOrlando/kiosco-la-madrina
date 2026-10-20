@@ -3,10 +3,22 @@ package devMario.example.kioscoLaMadrina.repository;
 import devMario.example.kioscoLaMadrina.exception.ResourceNotFoundException;
 import devMario.example.kioscoLaMadrina.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    /**
+     * Descuenta stock en una sola operación atómica: la base verifica y descuenta a la vez, así dos ventas
+     * simultáneas nunca leen el mismo stock (lost update). Devuelve 1 si se descontó y 0 si no alcanzaba.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE Product p SET p.stockQuantity = p.stockQuantity - :quantity "
+            + "WHERE p.id = :id AND p.stockQuantity >= :quantity")
+    int decreaseStockIfAvailable(@Param("id") Long id, @Param("quantity") int quantity);
 
     /** Busca un producto que debe existir; si no existe, la API responde 404. */
     default Product getRequiredById(Long id) {
