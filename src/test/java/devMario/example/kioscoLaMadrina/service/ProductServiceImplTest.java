@@ -30,14 +30,6 @@ public class ProductServiceImplTest {
         Product existing = new Product();
         when(productRepository.getRequiredById(1L)).thenReturn(existing);
 
-        // NO podemos usar when(repo.delete).thenReturn(true)...
-        // ¡porque delete no devuelve nada (void)!
-        // En Mockito, por defecto, los métodos void de un @Mock
-        // literalmenten "no hacen nada", lo cual es perfecto.
-        // Podríamos forzarlo con:
-        // doNothing().when(productRepository).delete(existing);
-        // (pero no es obligatorio)
-
         // 2. ACT
         // El método NO devuelve variables. Así que usamos
         // assertDoesNotThrow para afirmar que "se ejecuta
@@ -49,10 +41,11 @@ public class ProductServiceImplTest {
         // 3. ASSERT / VERIFY
         // ¡El corazón de la prueba void! Ya que no tenemos un "resultado"
         // para analizar con assertEquals...
-        // ...auditamos al propio repositorio para confirmar que Java
-        // le dio la orden final de matar al registro.
+        // ...verificamos el efecto: borrado LÓGICO. El producto queda inactivo
+        // y jamás se elimina de la base (lo necesita el historial de ventas).
         verify(productRepository, times(1)).getRequiredById(1L);
-        verify(productRepository, times(1)).delete(existing);
+        assertFalse(existing.isActive());
+        verify(productRepository, never()).delete(any(Product.class));
     }
 
     @Test

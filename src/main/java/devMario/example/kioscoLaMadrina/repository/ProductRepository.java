@@ -34,4 +34,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /** Productos (activos o no) que referencian la categoría: todos impiden borrarla. */
     long countByCategoryId(Long categoryId);
+
+    /** Catálogo: solo los productos que se pueden vender. */
+    List<Product> findByActiveTrue();
 }

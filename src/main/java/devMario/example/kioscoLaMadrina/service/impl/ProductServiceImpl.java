@@ -29,7 +29,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> findAll() {
-        return productRepository.findAll().stream()
+        return productRepository.findByActiveTrue().stream()
                 .map(productMapper::toDTO)
                 .collect(Collectors.toList());
     }
@@ -71,6 +71,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void delete(Long id) {
-        productRepository.delete(productRepository.getRequiredById(id));
+        // Borrado lógico: el producto deja de venderse pero sigue existiendo para el historial de ventas
+        // (borrarlo de verdad lo impedía la base, o dejaba ventas sin saber qué producto se vendió).
+        productRepository.getRequiredById(id).deactivate();
     }
 }
