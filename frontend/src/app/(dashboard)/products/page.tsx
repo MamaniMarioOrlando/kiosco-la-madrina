@@ -18,6 +18,7 @@ import {
 import { Plus, Loader2, Barcode, Archive, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { InactiveProducts } from '@/components/products/InactiveProducts';
 import { cn, formatCurrency } from '@/lib/utils';
 
 interface Product {
@@ -53,6 +54,8 @@ export default function ProductsPage() {
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [submitting, setSubmitting] = useState(false);
+    // Se incrementa al desactivar un producto para que la sección de inactivos se recargue.
+    const [inactiveReloadSignal, setInactiveReloadSignal] = useState(0);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -147,6 +150,7 @@ export default function ProductsPage() {
             await api.delete(`/products/${product.id}`);
             toast.success(`"${product.name}" desactivado`);
             fetchProducts();
+            setInactiveReloadSignal((n) => n + 1);
         } catch (err) {
             toast.error(apiErrorMessage(err, 'No se pudo desactivar el producto'));
         }
@@ -383,6 +387,10 @@ export default function ProductsPage() {
                     </TableBody>
                 </Table>
             </div>
+
+            {isAdmin && (
+                <InactiveProducts reloadSignal={inactiveReloadSignal} onReactivated={fetchProducts} />
+            )}
         </div>
     );
 }
