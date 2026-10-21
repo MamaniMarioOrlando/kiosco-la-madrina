@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { apiErrorMessage } from '@/lib/errors';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +28,6 @@ interface Category {
 export default function CategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
     // Form state
     const [isAdding, setIsAdding] = useState(false);
@@ -54,9 +55,8 @@ export default function CategoriesPage() {
         try {
             const response = await api.get('/categories');
             setCategories(response.data);
-        } catch (err: any) {
-            setError('Error al cargar categorías');
-            console.error(err);
+        } catch (err) {
+            toast.error(apiErrorMessage(err, 'Error al cargar las categorías'));
         } finally {
             setLoading(false);
         }
@@ -74,32 +74,23 @@ export default function CategoriesPage() {
             setNewDesc('');
             setIsAdding(false);
             fetchCategories();
-        } catch (err: any) {
-            console.error('Detalles del error:', err);
-            const status = err.response?.status;
-            const message = err.response?.data?.message || err.response?.data || err.message;
-
-            if (status === 403) {
-                alert('Error 403: No tienes permisos de ADMIN (Forbidden).');
-            } else if (status === 401) {
-                alert('Error 401: No autorizado. Sesión inválida o expirada.');
-            } else {
-                alert(`Error al crear categoría: ${status || '?'}. ${message}`);
-            }
+        } catch (err) {
+            toast.error(apiErrorMessage(err, 'Error al crear la categoría'));
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleDeleteCategory = async (id: number) => {
-        if (!confirm('¿Estás seguro de eliminar esta categoría? Se eliminarán los productos asociados.')) return;
+        // Solo se pueden borrar categorías sin productos: si tiene, el backend explica qué hacer (409).
+        if (!confirm('¿Estás seguro de eliminar esta categoría?')) return;
 
         try {
             await api.delete(`/categories/${id}`);
+            toast.success('Categoría eliminada');
             fetchCategories();
-        } catch (err: any) {
-            console.error(err);
-            alert('Error al eliminar la categoría');
+        } catch (err) {
+            toast.error(apiErrorMessage(err, 'Error al eliminar la categoría'));
         }
     };
 
@@ -118,9 +109,8 @@ export default function CategoriesPage() {
             });
             setEditingId(null);
             fetchCategories();
-        } catch (err: any) {
-            console.error(err);
-            alert('Error al actualizar la categoría');
+        } catch (err) {
+            toast.error(apiErrorMessage(err, 'Error al actualizar la categoría'));
         } finally {
             setSubmitting(false);
         }
