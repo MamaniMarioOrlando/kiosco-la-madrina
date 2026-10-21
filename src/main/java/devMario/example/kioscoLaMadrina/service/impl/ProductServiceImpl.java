@@ -1,6 +1,7 @@
 package devMario.example.kioscoLaMadrina.service.impl;
 
 import devMario.example.kioscoLaMadrina.dto.ProductDTO;
+import devMario.example.kioscoLaMadrina.exception.DuplicateBarcodeException;
 import devMario.example.kioscoLaMadrina.model.Product;
 import devMario.example.kioscoLaMadrina.repository.CategoryRepository;
 import devMario.example.kioscoLaMadrina.repository.ProductRepository;
@@ -61,6 +62,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDTO create(ProductDTO productDTO) {
+        ensureBarcodeIsFree(productDTO.barcode(), null);
         Product product = productMapper.toEntity(productDTO);
 
         if (productDTO.categoryId() != null) {
@@ -74,6 +76,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO update(Long id, ProductDTO productDTO) {
         Product product = productRepository.getRequiredById(id);
+        ensureBarcodeIsFree(productDTO.barcode(), id);
 
         product.setName(productDTO.name());
         product.setPrice(productDTO.price());
@@ -93,5 +96,17 @@ public class ProductServiceImpl implements ProductService {
         // Borrado lógico: el producto deja de venderse pero sigue existiendo para el historial de ventas
         // (borrarlo de verdad lo impedía la base, o dejaba ventas sin saber qué producto se vendió).
         productRepository.getRequiredById(id).deactivate();
+    }
+
+    /**
+     * El código de barras identifica un producto: no puede repetirse (tampoco con uno inactivo,
+     * que lo conserva). ownerId es el producto que se está editando, que sí puede mantener su código.
+     */
+    private void ensureBarcodeIsFree(String barcode, Long ownerId) {
+        productRepository.findByBarcode(barcode)
+                .filter(existing -> !existing.getId().equals(ownerId))
+                .ifPresent(existing -> {
+                    throw new DuplicateBarcodeException(existing);
+                });
     }
 }
