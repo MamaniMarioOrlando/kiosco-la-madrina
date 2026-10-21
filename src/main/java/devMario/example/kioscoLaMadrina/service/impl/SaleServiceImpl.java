@@ -2,6 +2,7 @@ package devMario.example.kioscoLaMadrina.service.impl;
 
 import devMario.example.kioscoLaMadrina.dto.SaleItemRequestDTO;
 import devMario.example.kioscoLaMadrina.exception.InsufficientStockException;
+import devMario.example.kioscoLaMadrina.exception.ProductNotAvailableException;
 import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
 import devMario.example.kioscoLaMadrina.model.*;
@@ -44,6 +45,9 @@ public class SaleServiceImpl implements SaleService {
 
         for (SaleItemRequestDTO item : request.items()) {
             Product product = productRepository.getRequiredById(item.productId());
+            if (!product.isActive()) {
+                throw new ProductNotAvailableException(product.getName());
+            }
 
             // Verificar y descontar en un solo paso atómico: leer el stock acá y restarlo después
             // permitía que varias cajas vendieran la misma unidad. Si falla, la transacción entera
