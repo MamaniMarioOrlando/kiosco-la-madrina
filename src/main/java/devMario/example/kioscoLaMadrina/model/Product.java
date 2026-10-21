@@ -32,6 +32,15 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    /** Un producto inactivo no se vende ni aparece en el catálogo, pero sigue en el historial de ventas. */
     @Builder.Default
     private boolean active = true;
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
 }

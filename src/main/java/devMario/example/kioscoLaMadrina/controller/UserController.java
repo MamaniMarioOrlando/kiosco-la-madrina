@@ -2,7 +2,7 @@ package devMario.example.kioscoLaMadrina.controller;
 
 import devMario.example.kioscoLaMadrina.dto.CreateUserRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.UpdateAvatarRequestDTO;
-import devMario.example.kioscoLaMadrina.dto.UpdateUserStatusRequestDTO;
+import devMario.example.kioscoLaMadrina.dto.UpdateStatusRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.UserResponseDTO;
 import devMario.example.kioscoLaMadrina.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,7 +46,7 @@ public class UserController {
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAuthority('ADMIN')")
     public UserResponseDTO updateStatus(@PathVariable Long id,
-                                        @Valid @RequestBody UpdateUserStatusRequestDTO request,
+                                        @Valid @RequestBody UpdateStatusRequestDTO request,
                                         @AuthenticationPrincipal UserDetails currentUser) {
         return userService.updateStatus(id, request.active(), currentUser.getUsername());
     }

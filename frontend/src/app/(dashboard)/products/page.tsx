@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { apiErrorMessage } from '@/lib/errors';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,9 +15,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2, Package, Barcode, Trash2, Pencil } from 'lucide-react';
+import { Plus, Loader2, Barcode, Archive, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { InactiveProducts } from '@/components/products/InactiveProducts';
 import { cn, formatCurrency } from '@/lib/utils';
 
 interface Product {
@@ -51,6 +54,8 @@ export default function ProductsPage() {
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [submitting, setSubmitting] = useState(false);
+    // Se incrementa al desactivar un producto para que la sección de inactivos se recargue.
+    const [inactiveReloadSignal, setInactiveReloadSignal] = useState(0);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -66,7 +71,7 @@ export default function ProductsPage() {
             const response = await api.get('/products');
             setProducts(response.data);
         } catch (err) {
-            console.error('Error fetching products', err);
+            toast.error(apiErrorMessage(err, 'Error al cargar los productos'));
         }
     };
 
@@ -75,7 +80,7 @@ export default function ProductsPage() {
             const response = await api.get('/categories');
             setCategories(response.data);
         } catch (err) {
-            console.error('Error fetching categories', err);
+            toast.error(apiErrorMessage(err, 'Error al cargar las categorías'));
         }
     };
 
@@ -116,18 +121,9 @@ export default function ProductsPage() {
             setFormData({ barcode: '', name: '', price: '', stockQuantity: '', categoryId: '' });
             setErrors({});
             fetchProducts();
-        } catch (err: any) {
-            console.error('Detalles del error:', err);
-            const status = err.response?.status;
-            const message = err.response?.data?.message || err.response?.data || err.message;
-
-            if (status === 403) {
-                alert('Error 403: No tienes permisos de ADMIN (Forbidden).');
-            } else if (status === 401) {
-                alert('Error 401: No autorizado. Sesión inválida o expirada.');
-            } else {
-                alert(`Error al ${editingId ? 'actualizar' : 'crear'} producto: ${status || '?'}. ${message}`);
-            }
+        } catch (err) {
+            // Incluye los 409 del backend, p. ej. código de barras repetido o de un producto inactivo.
+            toast.error(apiErrorMessage(err, `Error al ${editingId ? 'actualizar' : 'crear'} el producto`));
         } finally {
             setSubmitting(false);
         }
@@ -147,14 +143,16 @@ export default function ProductsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+    // Borrado lógico: el producto deja de venderse pero queda en el historial y se puede reactivar.
+    const handleDeactivate = async (product: Product) => {
+        if (!confirm(`¿Desactivar "${product.name}"? Va a dejar de aparecer en ventas. Podés reactivarlo más tarde.`)) return;
         try {
-            await api.delete(`/products/${id}`);
+            await api.delete(`/products/${product.id}`);
+            toast.success(`"${product.name}" desactivado`);
             fetchProducts();
+            setInactiveReloadSignal((n) => n + 1);
         } catch (err) {
-            console.error(err);
-            alert('No se pudo eliminar el producto.');
+            toast.error(apiErrorMessage(err, 'No se pudo desactivar el producto'));
         }
     };
 
@@ -372,13 +370,13 @@ export default function ProductsPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() => handleDelete(p.id)}
+                                                            onClick={() => handleDeactivate(p)}
                                                             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1 h-8 w-8 transition-colors"
                                                         >
-                                                            <Trash2 className="h-4 w-4" />
+                                                            <Archive className="h-4 w-4" />
                                                         </Button>
                                                     </TooltipTrigger>
-                                                    <TooltipContent>Eliminar producto</TooltipContent>
+                                                    <TooltipContent>Desactivar producto</TooltipContent>
                                                 </Tooltip>
                                             </div>
                                         </TableCell>
@@ -389,6 +387,10 @@ export default function ProductsPage() {
                     </TableBody>
                 </Table>
             </div>
+
+            {isAdmin && (
+                <InactiveProducts reloadSignal={inactiveReloadSignal} onReactivated={fetchProducts} />
+            )}
         </div>
     );
 }

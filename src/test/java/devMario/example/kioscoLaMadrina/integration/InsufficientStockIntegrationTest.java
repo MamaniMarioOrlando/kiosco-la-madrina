@@ -19,8 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Vender más de lo que hay es un conflicto con el inventario (409): el pedido es válido,
- * pero choca con el stock actual. Ni la venta ni el descuento de stock deben persistir.
+ * Ventas que chocan con el estado del inventario (409): el pedido es válido, pero no hay stock suficiente
+ * o el producto está inactivo. Ni la venta ni el descuento de stock deben persistir.
  */
 @ActiveProfiles("test")
 @WithMockUser(username = "admin", authorities = "ADMIN")
@@ -45,5 +45,22 @@ class InsufficientStockIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Stock insuficiente para Coca-Cola: pediste 5, quedan 3"));
 
         assertThat(productRepository.getRequiredById(cola.getId()).getStockQuantity()).isEqualTo(3);
+    }
+
+    @Test
+    void sellingAnInactiveProduct_Returns409_AndKeepsStock() throws Exception {
+        Product discontinued = Product.builder()
+                .barcode("is-" + UUID.randomUUID()).name("Pan dulce")
+                .price(new BigDecimal("5000")).stockQuantity(10).build();
+        discontinued.deactivate();
+        productRepository.save(discontinued);
+
+        mockMvc.perform(post("/api/sales")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[{\"productId\":%d,\"quantity\":1}]}".formatted(discontinued.getId())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Pan dulce no está disponible para la venta"));
+
+        assertThat(productRepository.getRequiredById(discontinued.getId()).getStockQuantity()).isEqualTo(10);
     }
 }

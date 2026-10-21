@@ -1,6 +1,7 @@
 package devMario.example.kioscoLaMadrina.controller;
 
 import devMario.example.kioscoLaMadrina.dto.ProductDTO;
+import devMario.example.kioscoLaMadrina.dto.UpdateStatusRequestDTO;
 import devMario.example.kioscoLaMadrina.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,24 @@ public class ProductController {
     @Autowired
     ProductService productService;
 
-    @Operation(summary = "List products", description = "Retrieves all products.")
+    @Operation(summary = "List products", description = "Retrieves the catalog: active products only.")
     @GetMapping
     public List<ProductDTO> list() {
         return productService.findAll();
+    }
+
+    @Operation(summary = "List inactive products", description = "Deactivated products, which can be reactivated. Requires ADMIN role.")
+    @GetMapping("/inactive")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public List<ProductDTO> listInactive() {
+        return productService.findInactive();
+    }
+
+    @Operation(summary = "Activate or deactivate product", description = "Inactive products are not sold nor listed. Requires ADMIN role.")
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ProductDTO updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateStatusRequestDTO request) {
+        return productService.updateStatus(id, request.active());
     }
 
     @Operation(summary = "Get product by ID", description = "Retrieves a specific product by its ID.")
@@ -44,7 +59,7 @@ public class ProductController {
         return productService.update(id, dto);
     }
 
-    @Operation(summary = "Delete product", description = "Deletes a product by ID. Requires ADMIN role.")
+    @Operation(summary = "Delete product", description = "Deactivates the product (soft delete); it stays in the sales history. Requires ADMIN role.")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public void delete(@PathVariable Long id) {
