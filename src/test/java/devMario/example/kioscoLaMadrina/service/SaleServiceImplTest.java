@@ -16,6 +16,7 @@ import devMario.example.kioscoLaMadrina.mapper.SaleMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -69,6 +70,8 @@ public class SaleServiceImplTest {
 
                 when(userRepository.getRequiredByUsername("testadmin")).thenReturn(testUser);
                 when(productRepository.getRequiredById(1L)).thenReturn(testProduct);
+                // La base confirma que había stock y lo descontó (1 fila actualizada)
+                when(productRepository.decreaseStockIfAvailable(1L, 3)).thenReturn(1);
 
                 // Cuando guarde la venta, devolveremos la misma venta
                 when(saleRepository
@@ -91,14 +94,15 @@ public class SaleServiceImplTest {
                 // 3. ASSERT (Verificar que los resultados computados matemáticamente son
                 // correctos)
                 assertNotNull(response);
-                assertEquals(new BigDecimal("4500"), response.totalAmount());
 
-                // Verificar que el stock se haya restado (10 - 3 = 7)
-                assertEquals(7, testProduct.getStockQuantity());
+                // El total se verifica en la venta que armó el servicio, no en la respuesta del mapper
+                // (que es un mock: verificarla sería comprobar el valor que pusimos nosotros mismos).
+                ArgumentCaptor<Sale> savedSale = ArgumentCaptor.forClass(Sale.class);
+                verify(saleRepository, times(1)).save(savedSale.capture());
+                assertEquals(new BigDecimal("4500"), savedSale.getValue().getTotalAmount()); // 3 x $1500
 
-                // Verificar que los repositorios fueron llamados exactamente una vez
-                verify(productRepository, times(1)).save(testProduct);
-                verify(saleRepository, times(1)).save(any(Sale.class));
+                // El stock se descuenta en la base con una operación atómica (3 unidades del producto 1)
+                verify(productRepository, times(1)).decreaseStockIfAvailable(1L, 3);
         }
 
         @Test
@@ -184,6 +188,8 @@ public class SaleServiceImplTest {
         when(userRepository.getRequiredByUsername("testadmin")).thenReturn(testUser);
         when(productRepository.getRequiredById(1L)).thenReturn(testProduct);
         when(productRepository.getRequiredById(2L)).thenReturn(doritos);
+        when(productRepository.decreaseStockIfAvailable(1L, 2)).thenReturn(1);
+        when(productRepository.decreaseStockIfAvailable(2L, 5)).thenReturn(1);
         
         when(saleRepository.save(any(Sale.class))).thenAnswer(invocation -> invocation.getArgument(0));
         
@@ -195,14 +201,14 @@ public class SaleServiceImplTest {
 
         // 3. ASSERT
         assertNotNull(response);
-        assertEquals(new BigDecimal("8000"), response.totalAmount(), "El total matemático de múltiples productos falló");
-        
-        // Verificamos que a AMBOS productos se les haya restado el stock individualmente
-        assertEquals(8, testProduct.getStockQuantity()); // 10 - 2 = 8
-        assertEquals(15, doritos.getStockQuantity());    // 20 - 5 = 15
 
-        // Verificamos que el repositorio intentó guardar cambios 2 veces (una por cada producto)
-        verify(productRepository, times(2)).save(any(Product.class));
-        verify(saleRepository, times(1)).save(any(Sale.class));
+        ArgumentCaptor<Sale> savedSale = ArgumentCaptor.forClass(Sale.class);
+        verify(saleRepository, times(1)).save(savedSale.capture());
+        assertEquals(new BigDecimal("8000"), savedSale.getValue().getTotalAmount(),
+                "El total matemático de múltiples productos falló");
+
+        // Verificamos que a AMBOS productos se les haya descontado el stock individualmente
+        verify(productRepository, times(1)).decreaseStockIfAvailable(1L, 2);
+        verify(productRepository, times(1)).decreaseStockIfAvailable(2L, 5);
     }
 }
