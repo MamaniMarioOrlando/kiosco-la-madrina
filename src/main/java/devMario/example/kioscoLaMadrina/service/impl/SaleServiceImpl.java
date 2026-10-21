@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.stream.Collectors;
 import java.util.List;
-import java.util.ArrayList;
 
 @Service
 @Transactional
@@ -43,9 +42,6 @@ public class SaleServiceImpl implements SaleService {
             sale.setPaymentMethod(request.paymentMethod());
         }
 
-        List<SaleDetail> details = new ArrayList<>();
-        BigDecimal totalAmount = BigDecimal.ZERO;
-
         for (SaleItemRequestDTO item : request.items()) {
             Product product = productRepository.getRequiredById(item.productId());
 
@@ -56,19 +52,8 @@ public class SaleServiceImpl implements SaleService {
                 throw new InsufficientStockException(product.getName(), item.quantity(), product.getStockQuantity());
             }
 
-            SaleDetail detail = new SaleDetail();
-            detail.setSale(sale);
-            detail.setProduct(product);
-            detail.setQuantity(item.quantity());
-            detail.setUnitPrice(product.getPrice());
-            detail.setSubtotal(product.getPrice().multiply(BigDecimal.valueOf(item.quantity())));
-
-            details.add(detail);
-            totalAmount = totalAmount.add(detail.getSubtotal());
+            sale.addItem(product, item.quantity());
         }
-
-        sale.setDetails(details);
-        sale.setTotalAmount(totalAmount);
 
         Sale savedSale = saleRepository.save(sale);
         return saleMapper.toDTO(savedSale);
