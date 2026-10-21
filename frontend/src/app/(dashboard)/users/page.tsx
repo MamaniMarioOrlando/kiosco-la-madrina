@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { apiErrorMessage } from '@/lib/errors';
 import { useCurrentUser } from '@/lib/session';
 import { AdminOnly } from '@/components/auth/AdminOnly';
-import { isAxiosError } from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,13 +38,6 @@ const ROLE_LABELS: Record<Role, string> = {
     EMPLOYEE: 'Empleado',
 };
 
-function errorMessage(err: unknown, fallback: string): string {
-    if (isAxiosError<{ message?: string }>(err)) {
-        return err.response?.data?.message || fallback;
-    }
-    return fallback;
-}
-
 export default function UsersPage() {
     return (
         <AdminOnly>
@@ -71,7 +64,7 @@ function UsersManager() {
             const response = await api.get('/users');
             setUsers(response.data);
         } catch (err) {
-            toast.error(errorMessage(err, 'Error al cargar los usuarios'));
+            toast.error(apiErrorMessage(err, 'Error al cargar los usuarios'));
         } finally {
             setLoading(false);
         }
@@ -87,7 +80,7 @@ function UsersManager() {
             setIsAdding(false);
             fetchUsers();
         } catch (err) {
-            toast.error(errorMessage(err, 'Error al crear el usuario'));
+            toast.error(apiErrorMessage(err, 'Error al crear el usuario'));
         } finally {
             setSubmitting(false);
         }
@@ -102,7 +95,7 @@ function UsersManager() {
             toast.success(`Usuario "${user.username}" ${user.active ? 'desactivado' : 'activado'}`);
             fetchUsers();
         } catch (err) {
-            toast.error(errorMessage(err, `Error al ${action} el usuario`));
+            toast.error(apiErrorMessage(err, `Error al ${action} el usuario`));
         }
     };
 
