@@ -31,4 +31,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // NUEVO MÉTODO (Búsqueda Rara): Nos sirve para encontrar productos a punto de agotarse
     List<Product> findByStockQuantityLessThan(Integer threshold);
+
+    /** Productos (activos o no) que referencian la categoría: todos impiden borrarla. */
+    long countByCategoryId(Long categoryId);
 }
