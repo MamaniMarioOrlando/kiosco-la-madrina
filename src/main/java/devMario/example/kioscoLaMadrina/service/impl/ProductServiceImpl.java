@@ -36,6 +36,25 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ProductDTO> findInactive() {
+        return productRepository.findByActiveFalse().stream()
+                .map(productMapper::toDTO)
+                .toList();
+    }
+
+    @Override
+    public ProductDTO updateStatus(Long id, boolean active) {
+        Product product = productRepository.getRequiredById(id);
+        if (active) {
+            product.activate();
+        } else {
+            product.deactivate();
+        }
+        return productMapper.toDTO(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ProductDTO findById(Long id) {
         return productMapper.toDTO(productRepository.getRequiredById(id));
     }

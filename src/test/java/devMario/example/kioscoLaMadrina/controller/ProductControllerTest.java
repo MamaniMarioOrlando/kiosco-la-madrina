@@ -45,7 +45,7 @@ public class ProductControllerTest {
     void testGetAllProducts_ReturnsListAndHttp200() throws Exception {
         // 1. ARRANGE
         ProductDTO fakeProduct = new ProductDTO(1L, "12345", "Coca-Cola",
-                new BigDecimal("1500"), 10, 1L, "Bebidas");
+                new BigDecimal("1500"), 10, 1L, "Bebidas", true);
         when(productService.findAll()).thenReturn(Arrays.asList(fakeProduct));
 
         // 2 & 3. ACT & ASSERT
@@ -74,7 +74,8 @@ public class ProductControllerTest {
                 new BigDecimal("-500"), // PRECIO INVIABLE (Genera Error)
                 -5, // STOCK INVIABLE (Genera Error)
                 1L, 
-                "Golosinas"
+                "Golosinas",
+                null // active: solo lectura, el cliente no lo envía
         );
 
         // Convertimos el objeto Java a un String JSON usando nuestra herramienta ObjectMapper

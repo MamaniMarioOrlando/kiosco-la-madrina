@@ -37,4 +37,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /** Catálogo: solo los productos que se pueden vender. */
     List<Product> findByActiveTrue();
+
+    List<Product> findByActiveFalse();
 }

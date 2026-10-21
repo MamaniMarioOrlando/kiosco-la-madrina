@@ -4,7 +4,12 @@ import devMario.example.kioscoLaMadrina.dto.ProductDTO;
 import java.util.List;
 
 public interface ProductService {
+    /** Catálogo: solo productos activos. */
     List<ProductDTO> findAll();
+
+    List<ProductDTO> findInactive();
+
+    ProductDTO updateStatus(Long id, boolean active);
 
     ProductDTO findById(Long id);
 
