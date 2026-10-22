@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
+import { todayInKiosk } from '@/lib/time';
 
 interface Product {
   id: number;
@@ -87,8 +88,7 @@ export default function Home() {
 
   const fetchDashboardData = async () => {
     try {
-      const d = new Date();
-      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const today = todayInKiosk();
       const [productsRes, categoriesRes, summaryRes, topSellersRes] = await Promise.all([
         api.get('/products'),
         api.get('/categories'),
