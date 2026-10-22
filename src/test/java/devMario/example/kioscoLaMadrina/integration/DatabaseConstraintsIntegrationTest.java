@@ -33,6 +33,17 @@ class DatabaseConstraintsIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void priceCannotExceedTenMillion() {
+        // Incidente del 2026-09-20 (docs/incidents.md): un precio de $35 billones cargado directo en la base.
+        assertRejected(() -> insertProduct("10000000.01", 1));
+    }
+
+    @Test
+    void stockCannotExceedOneHundredThousand() {
+        assertRejected(() -> insertProduct("100", 100_001));
+    }
+
+    @Test
     void soldQuantityMustBePositive() {
         long productId = insertProduct("100", 1);
         long saleId = insertSale();

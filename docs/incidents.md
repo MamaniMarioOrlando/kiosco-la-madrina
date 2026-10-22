@@ -17,7 +17,7 @@ Se detectó un producto ('Talco') con un precio desmesurado ($35.006.598.300.000
 ### Solución implementada
 1. **Frontend:** Validación de precio máximo (10 millones) y stock máximo (100.000) en el formulario de productos.
 2. **Backend:** Anotaciones `@Max` y `@Min` en el DTO de producto.
-3. **Base de datos:** (Pendiente) Añadir un `CHECK CONSTRAINT` para rechazar precios > 10 millones.
+3. **Base de datos:** migración V2 con `CHECK` de precio (mayor a 0 y hasta 10 millones) y de stock (0 a 100.000).
 
 ### Lecciones aprendidas
 - Es importante validar datos en todas las capas (frontend, backend, base de datos).
