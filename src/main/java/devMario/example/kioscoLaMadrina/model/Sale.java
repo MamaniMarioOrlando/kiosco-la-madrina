@@ -3,7 +3,7 @@ package devMario.example.kioscoLaMadrina.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class Sale {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime dateTime;
+    private Instant dateTime;
 
     @Column(nullable = false)
     @Builder.Default

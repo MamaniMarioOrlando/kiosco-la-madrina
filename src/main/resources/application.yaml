@@ -54,6 +54,8 @@ kiosco:
     # Un turno de trabajo con margen: el empleado se loguea una vez por turno y una sesión
     # olvidada en la PC del kiosco se cierra sola. Configurable sin tocar código (p. ej. 8h, 30m).
     jwtExpiration: ${JWT_EXPIRATION:12h}
+    # Zona del negocio: define qué ventas entran en "el día" (00:00 a 23:59 de Argentina).
+    timeZone: ${KIOSCO_TIME_ZONE:America/Argentina/Buenos_Aires}
   bootstrap:
     admin:
       username: ${ADMIN_USERNAME:}

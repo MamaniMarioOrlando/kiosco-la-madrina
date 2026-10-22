@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -31,6 +33,10 @@ public class SaleServiceImpl implements SaleService {
     private UserRepository userRepository;
     @Autowired
     private SaleMapper saleMapper;
+    @Autowired
+    private Clock clock;
+    @Autowired
+    private ZoneId businessZone;
 
     @Override
     public SaleResponseDTO createSale(SaleRequestDTO request, String username) {
@@ -38,7 +44,7 @@ public class SaleServiceImpl implements SaleService {
 
         Sale sale = new Sale();
         sale.setUser(user);
-        sale.setDateTime(LocalDateTime.now());
+        sale.setDateTime(Instant.now(clock));
         if(request.paymentMethod() != null) {
             sale.setPaymentMethod(request.paymentMethod());
         }
@@ -70,9 +76,8 @@ public class SaleServiceImpl implements SaleService {
         org.springframework.data.domain.Page<Sale> salesPage;
         
         if (date != null) {
-            LocalDateTime startOfDay = date.atStartOfDay();
-            LocalDateTime endOfDay = date.atTime(23, 59, 59, 999999999);
-            salesPage = saleRepository.findByDateTimeBetween(startOfDay, endOfDay, pageable);
+            salesPage = saleRepository.findByDateTimeGreaterThanEqualAndDateTimeLessThan(
+                    startOf(date), startOf(date.plusDays(1)), pageable);
         } else {
             salesPage = saleRepository.findAll(pageable);
         }
@@ -94,10 +99,9 @@ public class SaleServiceImpl implements SaleService {
     @Override
     @Transactional(readOnly = true)
     public devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO getSummary(LocalDate date) {
-        LocalDateTime startOfDay = date != null ? date.atStartOfDay() : LocalDate.of(1970, 1, 1).atStartOfDay();
-        LocalDateTime endOfDay = date != null ? date.atTime(23, 59, 59, 999999999) : LocalDateTime.now().plusYears(100);
-
-        List<Object[]> results = saleRepository.getSalesSummaryByPaymentMethodAndDate(startOfDay, endOfDay);
+        List<Object[]> results = date != null
+                ? saleRepository.getSalesSummaryByPaymentMethodBetween(startOf(date), startOf(date.plusDays(1)))
+                : saleRepository.getSalesSummaryByPaymentMethod();
         BigDecimal cashTotal = BigDecimal.ZERO;
         BigDecimal mpTotal = BigDecimal.ZERO;
 
@@ -129,5 +133,10 @@ public class SaleServiceImpl implements SaleService {
             map.put("quantity", row[1]);
             return map;
         }).collect(Collectors.toList());
+    }
+
+    /** Instante en que empieza ese día en la zona del negocio (00:00 de Argentina). */
+    private Instant startOf(LocalDate date) {
+        return date.atStartOfDay(businessZone).toInstant();
     }
 }
