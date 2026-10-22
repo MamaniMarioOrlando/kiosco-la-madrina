@@ -93,4 +93,16 @@ public class ProductControllerTest {
                 // Si el escudo funcionó, tu método de Controller jamás se ejecutó y Spring respondió con HTTP 400 (Bad Request).
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void createProduct_WithZeroPrice_Returns400WithAClearMessage() throws Exception {
+        // La base exige price > 0: si el DTO aceptara $0, el usuario recibiría un 500 en vez de este mensaje.
+        ProductDTO free = new ProductDTO(null, "779100", "Caramelo", BigDecimal.ZERO, 10, null, null, null);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(free)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("price: El precio debe ser mayor a 0"));
+    }
 }
