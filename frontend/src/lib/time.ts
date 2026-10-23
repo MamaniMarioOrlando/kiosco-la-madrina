@@ -10,7 +10,20 @@ export function todayInKiosk(): string {
     return new Intl.DateTimeFormat('en-CA', { timeZone: KIOSK_TIME_ZONE }).format(new Date());
 }
 
+// Formato explícito en 24 h: el formato por defecto de es-AR usa 12 h sin "a. m./p. m.",
+// así que las 23:53 se veían como "11:53".
+const kioskDateTimeFormat = new Intl.DateTimeFormat('es-AR', {
+    timeZone: KIOSK_TIME_ZONE,
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+});
+
 /** Fecha y hora legibles en hora del kiosco, a partir de un instante ISO de la API (p. ej. "2026-10-22T02:30:00Z"). */
 export function formatKioskDateTime(isoInstant: string): string {
-    return new Date(isoInstant).toLocaleString('es-AR', { timeZone: KIOSK_TIME_ZONE });
+    return kioskDateTimeFormat.format(new Date(isoInstant));
 }
