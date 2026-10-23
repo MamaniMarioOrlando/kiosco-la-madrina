@@ -35,6 +35,15 @@ public class Sale {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    /** Cuándo se anuló; null si la venta está vigente. Una venta anulada no suma en caja ni en estadísticas. */
+    private Instant voidedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voided_by_id")
+    private User voidedBy;
+
+    private String voidReason;
+
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<SaleDetail> details = new ArrayList<>();

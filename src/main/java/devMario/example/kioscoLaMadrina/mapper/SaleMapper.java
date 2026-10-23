@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 public interface SaleMapper {
 
     @Mapping(target = "username", source = "user.username")
+    @Mapping(target = "voidedBy", source = "voidedBy.username")
     SaleResponseDTO toDTO(Sale sale);
 
     @Mapping(target = "productId", source = "product.id")

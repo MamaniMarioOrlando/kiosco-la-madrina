@@ -95,7 +95,7 @@ public class SaleServiceImplTest {
                                 new BigDecimal("4500"),
                                 "testadmin",
                                 null,
-                                devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
+                                devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH, null, null, null);
                 when(saleMapper.toDTO(any(Sale.class))).thenReturn(dummyResponse);
 
                 // 2. ACT (Ejecutar el método real)
@@ -204,7 +204,7 @@ public class SaleServiceImplTest {
         
         when(saleRepository.save(any(Sale.class))).thenAnswer(invocation -> invocation.getArgument(0));
         
-        SaleResponseDTO dummyResponse = new SaleResponseDTO(1L, null, new BigDecimal("8000"), "testadmin", null, devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH);
+        SaleResponseDTO dummyResponse = new SaleResponseDTO(1L, null, new BigDecimal("8000"), "testadmin", null, devMario.example.kioscoLaMadrina.model.PaymentMethod.CASH, null, null, null);
         when(saleMapper.toDTO(any(Sale.class))).thenReturn(dummyResponse);
 
         // 2. ACT

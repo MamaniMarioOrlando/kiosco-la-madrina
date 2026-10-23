@@ -67,6 +67,14 @@ class DatabaseConstraintsIntegrationTest extends AbstractIntegrationTest {
                 VALUES (now(), 0, 'CASH', NULL)"""));
     }
 
+    @Test
+    void aVoidedSaleMustRecordWhoVoidedItAndWhy() {
+        long saleId = insertSale();
+
+        assertRejected(() -> jdbc.update(
+                "UPDATE sales SET voided_at = now(), void_reason = NULL WHERE id = ?", saleId));
+    }
+
     private long insertProduct(String price, int stock) {
         return jdbc.queryForObject("""
                         INSERT INTO products (barcode, name, price, stock_quantity)
