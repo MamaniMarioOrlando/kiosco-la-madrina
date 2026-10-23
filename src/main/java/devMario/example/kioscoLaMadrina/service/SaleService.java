@@ -14,5 +14,5 @@ public interface SaleService {
     
     DailySalesSummaryDTO getSummary(LocalDate date);
 
-    java.util.List<java.util.Map<String, Object>> getTopSellers();
+    java.util.List<devMario.example.kioscoLaMadrina.dto.TopSellerDTO> getTopSellers();
 }

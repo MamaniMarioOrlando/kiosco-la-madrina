@@ -27,7 +27,7 @@ export default function Home() {
     categoryCount: 0
   });
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
-  const [topSellers, setTopSellers] = useState<{ name: string, quantity: number }[]>([]);
+  const [topSellers, setTopSellers] = useState<{ productId: number, name: string, quantity: number }[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
@@ -309,7 +309,7 @@ export default function Home() {
           {topSellers.length > 0 ? (
             <div className="space-y-4">
               {topSellers.map((item, index) => (
-                <div key={item.name} className="relative">
+                <div key={item.productId} className="relative">
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-slate-500">

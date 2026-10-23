@@ -124,15 +124,8 @@ public class SaleServiceImpl implements SaleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<java.util.Map<String, Object>> getTopSellers() {
-        org.springframework.data.domain.Pageable topFive = org.springframework.data.domain.PageRequest.of(0, 5);
-        List<Object[]> results = saleRepository.getTopSellersQuery(topFive);
-        return results.stream().map(row -> {
-            java.util.Map<String, Object> map = new java.util.HashMap<>();
-            map.put("name", row[0]);
-            map.put("quantity", row[1]);
-            return map;
-        }).collect(Collectors.toList());
+    public List<devMario.example.kioscoLaMadrina.dto.TopSellerDTO> getTopSellers() {
+        return saleRepository.findTopSellers(org.springframework.data.domain.PageRequest.of(0, 5));
     }
 
     /** Instante en que empieza ese día en la zona del negocio (00:00 de Argentina). */
