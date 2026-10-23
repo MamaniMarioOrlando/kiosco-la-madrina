@@ -43,7 +43,7 @@ public class SaleController {
 
     @Operation(summary = "Get top sellers", description = "Retrieves top 5 selling products")
     @GetMapping("/top-sellers")
-    public java.util.List<java.util.Map<String, Object>> getTopSellers() {
+    public java.util.List<devMario.example.kioscoLaMadrina.dto.TopSellerDTO> getTopSellers() {
         return saleService.getTopSellers();
     }
 }

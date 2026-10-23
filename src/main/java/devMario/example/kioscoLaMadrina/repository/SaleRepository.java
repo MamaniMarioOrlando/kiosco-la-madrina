@@ -1,5 +1,6 @@
 package devMario.example.kioscoLaMadrina.repository;
 
+import devMario.example.kioscoLaMadrina.dto.TopSellerDTO;
 import devMario.example.kioscoLaMadrina.model.Sale;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,11 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     @Query("SELECT s.paymentMethod, SUM(s.totalAmount) FROM Sale s GROUP BY s.paymentMethod")
     List<Object[]> getSalesSummaryByPaymentMethod();
-    @Query("SELECT d.product.name, SUM(d.quantity) FROM SaleDetail d GROUP BY d.product.name ORDER BY SUM(d.quantity) DESC")
-    List<Object[]> getTopSellersQuery(Pageable pageable);
+    // Agrupa por id (el nombre no es único). El id también desempata, para que el orden sea estable.
+    @Query("""
+            SELECT new devMario.example.kioscoLaMadrina.dto.TopSellerDTO(p.id, p.name, SUM(d.quantity))
+            FROM SaleDetail d JOIN d.product p
+            GROUP BY p.id, p.name
+            ORDER BY SUM(d.quantity) DESC, p.id""")
+    List<TopSellerDTO> findTopSellers(Pageable pageable);
 }
