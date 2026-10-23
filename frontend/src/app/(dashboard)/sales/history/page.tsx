@@ -14,6 +14,7 @@ import { Loader2, History, User, Calendar, Eye, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
+import { formatKioskDateTime, todayInKiosk } from '@/lib/time';
 
 interface SaleDetail {
     productName: string;
@@ -50,8 +51,7 @@ export default function SalesHistoryPage() {
     const fetchData = async (page: number, mode: 'TODAY' | 'ALL') => {
         setPageLoading(true);
         try {
-            const d = new Date();
-            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const dateStr = todayInKiosk();
             const dateParam = mode === 'TODAY' ? `date=${dateStr}&` : '';
             
             const [salesRes, summaryRes] = await Promise.all([
@@ -151,7 +151,7 @@ export default function SalesHistoryPage() {
                                     <TableCell>
                                         <div className="flex items-center gap-2 dark:text-slate-300">
                                             <Calendar className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                                            {new Date(sale.dateTime).toLocaleString('es-AR')}
+                                            {formatKioskDateTime(sale.dateTime)}
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -227,7 +227,7 @@ export default function SalesHistoryPage() {
                                 <div>
                                     <h3 className="text-xl font-bold">Venta #{selectedSale.id}</h3>
                                     <p className="text-sm text-slate-400">
-                                        {new Date(selectedSale.dateTime).toLocaleString('es-AR')}
+                                        {formatKioskDateTime(selectedSale.dateTime)}
                                     </p>
                                 </div>
                                 <Button

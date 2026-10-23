@@ -6,17 +6,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-// ¡LA MAGIA DE @DataJpaTest!
-// Esta anotación apaga la Web, apaga los Controllers, apaga los Servicios y apaga tu PostgreSQL real.
-// Enciende SOLAMENTE H2 (base en memoria súper rápida) y configura Hibernate. ¡Todo automáticamente!
+// @DataJpaTest levanta solo la capa de datos (sin web ni servicios) y revierte cada test.
+// Corre contra PostgreSQL real, igual que producción: H2 no entiende parte del SQL de las migraciones.
+// Contenedor propio (no el compartido de AbstractIntegrationTest): base vacía, así el conteo es exacto.
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Testcontainers
 public class ProductRepositoryTest {
+
+    @Container
+    @ServiceConnection
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Autowired
     private TestEntityManager entityManager; // Tu "Inyector" oficial para bases de datos de prueba
@@ -57,7 +68,7 @@ public class ProductRepositoryTest {
         entityManager.persist(product1);
         entityManager.persist(product2);
         entityManager.persist(product3);
-        entityManager.flush(); // Forzamos escribirlos en la BD en memoria (H2)
+        entityManager.flush(); // Forzamos escribirlos en la base antes de consultar
 
         // 2. ACT (EJECUCIÓN DEL MÉTODO REBELDE)
         // El Project Manager definió que un umbral menor a 10 dispara una alerta a reposición.

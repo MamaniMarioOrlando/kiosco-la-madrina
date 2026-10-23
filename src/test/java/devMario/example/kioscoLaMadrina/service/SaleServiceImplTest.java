@@ -19,9 +19,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,6 +46,12 @@ public class SaleServiceImplTest {
 
         @Mock
         private SaleMapper saleMapper;
+
+        // Reloj fijo: la hora de la venta es predecible y se puede verificar.
+        private static final Instant NOW = Instant.parse("2026-10-22T02:30:00Z");
+
+        @Spy
+        private Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
 
         @InjectMocks
         private SaleServiceImpl saleService;
@@ -100,6 +110,7 @@ public class SaleServiceImplTest {
                 ArgumentCaptor<Sale> savedSale = ArgumentCaptor.forClass(Sale.class);
                 verify(saleRepository, times(1)).save(savedSale.capture());
                 assertEquals(new BigDecimal("4500"), savedSale.getValue().getTotalAmount()); // 3 x $1500
+                assertEquals(NOW, savedSale.getValue().getDateTime());
 
                 // El stock se descuenta en la base con una operación atómica (3 unidades del producto 1)
                 verify(productRepository, times(1)).decreaseStockIfAvailable(1L, 3);
