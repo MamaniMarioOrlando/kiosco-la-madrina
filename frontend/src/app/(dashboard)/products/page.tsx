@@ -88,7 +88,7 @@ export default function ProductsPage() {
         const newErrors: { [key: string]: string } = {};
         if (!formData.barcode.trim()) newErrors.barcode = 'Este campo es obligatorio';
         if (!formData.name.trim()) newErrors.name = 'Este campo es obligatorio';
-        if (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) < 0) newErrors.price = 'El precio no puede ser negativo';
+        if (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) <= 0) newErrors.price = 'El precio debe ser mayor a 0';
         if (parseFloat(formData.price) > 10000000) newErrors.price = 'El precio no puede superar los $10.000.000';
         if (!formData.stockQuantity || isNaN(parseInt(formData.stockQuantity)) || parseInt(formData.stockQuantity) < 0) newErrors.stockQuantity = 'El stock no puede ser negativo';
         if (parseInt(formData.stockQuantity) > 100000) newErrors.stockQuantity = 'El stock no puede superar las 100.000 unidades';
