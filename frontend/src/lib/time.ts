@@ -4,10 +4,17 @@
  */
 const KIOSK_TIME_ZONE = 'America/Argentina/Buenos_Aires';
 
+// en-CA formatea las fechas como YYYY-MM-DD.
+const kioskDateFormat = new Intl.DateTimeFormat('en-CA', { timeZone: KIOSK_TIME_ZONE });
+
 /** Fecha de hoy en el kiosco, en formato YYYY-MM-DD (el que espera la API). */
 export function todayInKiosk(): string {
-    // en-CA formatea las fechas como YYYY-MM-DD.
-    return new Intl.DateTimeFormat('en-CA', { timeZone: KIOSK_TIME_ZONE }).format(new Date());
+    return kioskDateFormat.format(new Date());
+}
+
+/** Si un instante de la API cae en el día de hoy del kiosco (p. ej. para saber si una venta se puede anular). */
+export function isTodayInKiosk(isoInstant: string): boolean {
+    return kioskDateFormat.format(new Date(isoInstant)) === todayInKiosk();
 }
 
 // Formato explícito en 24 h: el formato por defecto de es-AR usa 12 h sin "a. m./p. m.",

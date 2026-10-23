@@ -13,8 +13,10 @@ import {
 import { Loader2, History, User, Calendar, Eye, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { formatKioskDateTime, todayInKiosk } from '@/lib/time';
+import { isAdmin, useCurrentUser } from '@/lib/session';
+import { VoidSale } from '@/components/sales/VoidSale';
 
 interface SaleDetail {
     productName: string;
@@ -30,6 +32,9 @@ interface Sale {
     username: string;
     details: SaleDetail[];
     paymentMethod?: 'CASH' | 'MERCADO_PAGO';
+    voidedAt?: string | null;
+    voidedBy?: string | null;
+    voidReason?: string | null;
 }
 
 export default function SalesHistoryPage() {
@@ -43,6 +48,7 @@ export default function SalesHistoryPage() {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const ITEMS_PER_PAGE = 8;
+    const currentUser = useCurrentUser();
 
     useEffect(() => {
         fetchData(0, viewMode);
@@ -172,7 +178,14 @@ export default function SalesHistoryPage() {
                                         )}
                                     </TableCell>
                                     <TableCell className="font-bold text-slate-900 dark:text-white text-lg">
-                                        {formatCurrency(sale.totalAmount)}
+                                        <span className={cn(sale.voidedAt && 'line-through opacity-50')}>
+                                            {formatCurrency(sale.totalAmount)}
+                                        </span>
+                                        {sale.voidedAt && (
+                                            <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-950/40 dark:text-red-400">
+                                                ANULADA
+                                            </span>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <Button
@@ -268,6 +281,15 @@ export default function SalesHistoryPage() {
                                         <div className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(selectedSale.totalAmount)}</div>
                                     </div>
                                 </div>
+
+                                <VoidSale
+                                    sale={selectedSale}
+                                    canVoid={isAdmin(currentUser)}
+                                    onVoided={(voided) => {
+                                        setSelectedSale(voided);
+                                        fetchData(currentPage, viewMode);
+                                    }}
+                                />
                             </div>
 
                         </motion.div>
