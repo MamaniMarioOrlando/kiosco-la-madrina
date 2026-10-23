@@ -1,206 +1,142 @@
-# Kiosco La Madrina - Sistema de Gestión 🛒
+# Kiosco La Madrina
 
-Sistema integral de gestión para kioscos, diseñado para agilizar las ventas diarias, controlar el inventario y proporcionar estadísticas en tiempo real.
+[![Java CI](https://github.com/MamaniMarioOrlando/kiosco-la-madrina/actions/workflows/maven.yml/badge.svg)](https://github.com/MamaniMarioOrlando/kiosco-la-madrina/actions/workflows/maven.yml)
+![Java 21](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot 3.4](https://img.shields.io/badge/Spring%20Boot-3.4-6DB33F)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## 🚀 Características Principales
-- **Punto de Venta (POS)**: Buscador de productos por código de barras o nombre, carrito de compras y cálculo de vuelto automático.
-- **Gestión de Inventario**: CRUD de productos y categorías con alertas de stock bajo y nivel crítico.
-- **Dashboard en Tiempo Real**: Resumen de ventas del día, ranking de productos más vendidos y estados del sistema.
-- **Historial de Ventas**: Registro detallado de todas las transacciones realizadas con desglose de productos.
-- **Seguridad y Roles**: Control de acceso basado en roles (ADMIN y EMPLEADO).
-- **Interfaz Premium**: Soporte para Modo Oscuro/Claro y diseño responsivo optimizado.
+Point-of-sale and inventory system for a real neighborhood kiosk in Argentina: sales at the counter,
+stock control, daily cash closing and sales statistics, with separate roles for the owner and the employees.
 
----
+**Live app:** [kiosco-la-madrina.vercel.app](https://kiosco-la-madrina.vercel.app) — it holds the kiosk's real
+data, so access is available on request.
 
-## 🛠️ Stack Tecnológico
-
-### Backend
-- **Lenguaje**: Java 21
-- **Framework**: Spring Boot 3
-- **Seguridad**: Spring Security + JWT
-- **Base de Datos**: JPA/Hibernate (H2 para desarrollo)
-- **Herramientas**: Lombok, Maven
-
-### Frontend
-- **Framework**: Next.js 16 (App Router)
-- **Librería UI**: React 19 + Tailwind CSS
-- **Animaciones**: Framer Motion
-- **Iconografía**: Lucide React
-- **Estilo**: Diseño minimalista con soporte para temas.
-
----
-
-## 📂 Estructura del Proyecto
-
-```text
-kioscoLaMadrina/
-├── src/main/java/.../       # Código fuente del Backend (Spring Boot)
-│   ├── controller/          # Endpoints de la API
-│   ├── model/               # Entidades de la Base de Datos
-│   ├── repository/          # Interfaces de acceso a datos
-│   ├── security/            # Configuración de Seguridad y JWT
-│   └── service/             # Lógica de negocio
-├── frontend/                # Aplicación Frontend (Next.js)
-│   ├── src/app/             # Páginas y Rutas (Dashboard, Sales, Products)
-│   ├── src/components/      # Componentes UI reutilizables
-│   ├── src/lib/             # Utilidades y cliente API (Axios)
-│   └── public/              # Recursos estáticos
-└── README.md                # Documentación del proyecto
-```
-
----
-
-## 📊 Modelo de Datos y Relaciones
-
-El sistema utiliza una base de datos relacional con el siguiente modelo:
-
-### Entidades Principales:
-1.  **User**: Almacena las credenciales y el rol (`ADMIN`, `EMPLOYEE`).
-2.  **Category**: Clasifica los productos (ej: Gaseosas, Golosinas).
-3.  **Product**: Contiene el stock, precio y código de barras. Está vinculado a una `Category`.
-4.  **Sale**: Cabecera de la venta. Registra la fecha, el total y el usuario que realizó la venta.
-5.  **SaleDetail**: Detalle de cada ítem en una venta. Vincula `Sale` con `Product` y registra cantidad y precio al momento de la venta.
-
-### Relaciones:
-- **Product (N) -> Category (1)**: Muchos productos pertenecen a una categoría.
-- **Sale (1) -> SaleDetail (N)**: Una venta tiene muchos detalles.
-- **SaleDetail (N) -> Product (1)**: Muchos detalles de venta pueden referenciar al mismo producto.
-- **Sale (N) -> User (1)**: Muchas ventas pueden ser realizadas por un mismo usuario.
-
----
-
-## 🌎 Configuración de la Base de Datos
-El proyecto utiliza **PostgreSQL 16**. Para facilitar la configuración, se incluye un archivo `docker-compose.yml`.
-
-### Ejecución con Docker (Recomendado)
-Para levantar la base de datos rápidamente:
-```bash
-docker compose up -d
-```
-Esto creará un contenedor llamado `kiosco-postgres` con:
-- **DB**: `kiosco_db`
-- **User**: `postgres`
-- **Password**: `password`
-- **Puerto en tu máquina**: `5433` (dentro del contenedor, `5432`). Se usa el 5433 para no chocar con otros proyectos.
-
----
-
-## 🧪 Testing y Calidad de Código
-El proyecto cuenta con una robusta suite de pruebas unitarias y de integración:
-- **Unit Testing**: Tests aislados para lógica de negocio y capa de repositorios usando la base de datos en memoria **H2**.
-- **Integration Testing E2E**: Usa **Testcontainers** combinando MockMvc y Docker. Levanta una instancia real y efímera de **PostgreSQL 16** para certificar el correcto funcionamiento de toda la aplicación (Controlador -> Servicio -> Repositorio).
-
-Para ejecutar toda la suite de pruebas (requiere Docker en ejecución):
-```bash
-mvn clean test
-```
-
----
-
-## ⚙️ Pasos para Ejecutar la Aplicación
-
-### 1. Requisitos Previos
-- Java 21 instalado.
-- Node.js (v18 o superior) y npm.
-- Docker y Docker Compose (para la base de datos).
-
-### 2. Levantar la Base de Datos
-```bash
-docker compose up -d
-```
-
-### 3. Configurar las variables de entorno
-Creá un archivo `.env` en la raíz (está en `.gitignore`, nunca lo commitees):
-```bash
-DB_URL=jdbc:postgresql://localhost:5433/kiosco_db
-DB_USERNAME=postgres
-DB_PASSWORD=password
-# Clave en Base64 de al menos 256 bits. Generala con: openssl rand -base64 32
-# La app no arranca si falta, es corta o es una clave de ejemplo pública.
-JWT_SECRET_KEY=...
-# Opcional: duración de la sesión (por defecto 12h, un turno con margen). Ej.: 8h, 30m
-# JWT_EXPIRATION=12h
-# Primer administrador: se crea al arrancar solo si todavía no existe ningún ADMIN
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=una-contraseña-segura   # mínimo 8 caracteres
-ADMIN_EMAIL=admin@tu-kiosco.com
-```
-
-### Usuarios y roles
-No hay registro público: **solo un ADMIN puede crear usuarios**, desde la pantalla *Usuarios*.
-- **ADMIN**: gestiona productos, categorías y usuarios.
-- **EMPLOYEE**: registra ventas y consulta información.
-
-Un usuario desactivado pierde el acceso de inmediato, aunque tenga una sesión abierta.
-
-### Protección del login
-Tras **5 contraseñas incorrectas** para una misma cuenta desde la misma red, esa cuenta queda bloqueada
-**hasta 15 minutos** para esa red (respuesta `429` con `Retry-After`). Un empleado que se equivoca no
-bloquea al resto del kiosco, y un atacante no puede bloquear una cuenta desde otra red.
-Además, una misma IP no puede acumular más de 20 intentos fallidos cada 15 minutos entre todas las cuentas.
-Los contadores viven en memoria: reiniciar el backend los limpia.
-
-### Perfiles: desarrollo y producción
-La configuración base (`application.yaml`) es la de **producción** y es segura por defecto:
-sin Swagger, sin SQL en los logs y sin mensajes internos en los errores.
-El perfil **`dev`** (`application-dev.yaml`) habilita esas herramientas y se activa solo con
-`./mvnw spring-boot:run`. El `.jar` de producción corre sin perfil: no hace falta configurar nada.
-
-### 4. Ejecutar el Backend
-Desde la raíz del proyecto:
-```bash
-./mvnw spring-boot:run
-```
-El servidor backend correrá en `http://localhost:8080`, con el perfil `dev` activo.
-La documentación interactiva de la API (Swagger) queda en `http://localhost:8080/swagger-ui/index.html`
-(solo en desarrollo).
-
-### 5. Ejecutar el Frontend
-Abre una nueva terminal y navega a la carpeta frontend:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-La aplicación estará disponible en `http://localhost:3001`.
-
----
-
-## ☁️ Despliegue en producción
-
-```text
-Vercel (frontend Next.js)  →  Railway (backend Spring Boot, Dockerfile)  →  Neon (PostgreSQL)
-```
-Cada merge a `main` despliega automáticamente en Vercel y Railway. El backend corre sin perfil activo,
-o sea con la configuración segura por defecto.
-
-### Variables en Railway
-| Variable | Valor | Para qué |
-|---|---|---|
-| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Datos de conexión de Neon | Base de datos |
-| `JWT_SECRET_KEY` | `openssl rand -base64 32` | Firma de las sesiones. La app no arranca si es insegura |
-| `ALLOWED_ORIGINS` | `https://kiosco-la-madrina.vercel.app` | CORS: solo el frontend puede llamar a la API. **Nunca `*`** |
-| `SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES` | `.*` | Confiar en el proxy de Railway para obtener la IP real del cliente. Sin esto, el bloqueo de login se comparte entre todos los usuarios |
-| `JWT_EXPIRATION` | *(opcional)* | Duración de la sesión. Por defecto `12h` |
-
-`SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES=.*` es seguro **solo en Railway**: el contenedor no es accesible
-directamente y su proxy reemplaza `X-Forwarded-For` con la IP real, descartando lo que envíe el cliente
-(verificado en producción). No usar ese valor en un servidor expuesto directamente a internet.
-
-### Variables en Vercel
-| Variable | Valor |
+| Dashboard | New sale |
 |---|---|
-| `NEXT_PUBLIC_API_URL` | `https://<servicio>.up.railway.app/api` |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![New sale](docs/screenshots/new-sale.png) |
+| **Sales history** | **Products** |
+| ![Sales history](docs/screenshots/sales-history.png) | ![Products](docs/screenshots/products.png) |
 
-### Diagnóstico
-`LOGGING_LEVEL_KIOSCO_CLIENTIP=DEBUG` en Railway registra, en cada pedido, qué IP ve la aplicación y qué
-informan los encabezados del proxy. Usarla solo mientras se investiga un problema y después borrarla.
+## Features
 
-## 🌓 Configuración de Temas
-La aplicación soporta **Modo Oscuro** y **Modo Claro**. Puedes cambiar el tema desde el interruptor ubicado en la barra superior derecha. La preferencia se guardará automáticamente en tu navegador.
+- **Point of sale:** search by barcode or name, cart, cash or Mercado Pago, change calculation.
+- **Inventory:** products and categories, low-stock alerts. Products are deactivated instead of deleted, so
+  the sales history keeps them, and an admin can reactivate them.
+- **Dashboard and history:** today's totals by payment method, daily cash closing, top sellers, every sale
+  with its items.
+- **Users and roles:** no public sign-up. An `ADMIN` creates accounts and can deactivate them, which cuts
+  access immediately, even for open sessions. `EMPLOYEE` users sell and check information.
+- **Dark and light themes**, responsive layout, Argentine currency and date formats.
 
----
+## Engineering highlights
 
-## 🇦🇷 Localización
-- Moneda: Los precios están formateados según el estándar argentino (`1.500,00`).
-- Fecha y Hora: Formato regional `DD/MM/AAAA`.
+The interesting part of this project is not the CRUD but the problems that show up once real people use it:
+
+- **No overselling under concurrency.** Two checkouts selling the last unit at the same time used to both
+  succeed. Stock is now decremented with a single conditional `UPDATE ... WHERE stock >= quantity`, proven
+  by a test that fires 20 parallel sales at a stock of 5 against real PostgreSQL.
+- **Defense in depth for data.** The same rules (price above 0 and up to 10 million, stock from 0 to 100,000)
+  are enforced by the form, the API (Bean Validation) and the database (`CHECK` constraints), so data that
+  bypasses the app is still rejected. This came out of a [real incident](docs/incidents.md).
+- **Time zones done right.** Sales are stored as UTC instants; a business day is 00:00–23:59 in
+  `America/Argentina/Buenos_Aires`. Before this, a sale at 23:30 landed on the next day because the server
+  runs in UTC. The clock is injected, so tests can pin the time.
+- **Secure by default.** The app refuses to start with a weak or sample JWT secret. Login is locked after
+  5 failed attempts per account and network, plus a per-IP rate limit. Errors never leak internals, and
+  Swagger and SQL logging only exist in the `dev` profile.
+- **Real database in tests.** Every test that touches the database runs on PostgreSQL with Testcontainers,
+  not an in-memory substitute, because H2 does not behave like production.
+- **Versioned schema.** Flyway migrations, including guarded data fixes that are no-ops on any other
+  database.
+- **Incident log.** [docs/incidents.md](docs/incidents.md) records what went wrong in production and how it
+  was handled, including the response to a hosting provider's secrets leak (written in Spanish).
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Browser["Browser<br/>(kiosk PC)"] --> Vercel["Next.js 16 frontend<br/>Vercel"]
+    Vercel -->|"REST + JWT"| Railway["Spring Boot 3 API<br/>Railway (Docker)"]
+    Railway -->|"JPA + Flyway"| Neon[("PostgreSQL<br/>Neon")]
+```
+
+The backend follows a classic layered design: controllers, services, repositories, with DTOs (MapStruct)
+at the edges and domain logic in the entities where it belongs (for example, `Sale.addItem` keeps the total
+consistent and snapshots the unit price).
+
+| | |
+|---|---|
+| **Backend** | Java 21, Spring Boot 3.4, Spring Security, JWT (jjwt), Spring Data JPA, Flyway, MapStruct, Lombok, Bucket4j + Caffeine |
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Axios, Sonner |
+| **Database** | PostgreSQL 16 (local) / 17 (Neon) |
+| **Testing** | JUnit 5, Mockito, MockMvc, Testcontainers |
+| **CI/CD** | GitHub Actions on every pull request; Vercel and Railway deploy `main` |
+
+## Testing
+
+More than 140 automated tests (unit and integration) with about 89% line coverage of the backend
+(measured with JaCoCo). Every test that guards a bug fix was written first and seen failing, so it is
+known to catch the bug. Docker must be running:
+
+```bash
+./mvnw test
+```
+
+## Running locally
+
+**Requirements:** Java 21, Node.js 20+, Docker.
+
+1. **Database** (PostgreSQL on port 5433, so it does not clash with other local projects):
+
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Environment.** Create a `.env` file in the project root (it is git-ignored):
+
+   ```bash
+   DB_URL=jdbc:postgresql://localhost:5433/kiosco_db
+   DB_USERNAME=postgres
+   DB_PASSWORD=password
+   JWT_SECRET_KEY=   # generate with: openssl rand -base64 32
+   # First admin, created on startup only if no ADMIN exists yet
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=   # at least 8 characters
+   ADMIN_EMAIL=admin@example.com
+   ```
+
+3. **Backend** at `http://localhost:8080` (`dev` profile, Swagger at `/swagger-ui/index.html`):
+
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+4. **Frontend** at `http://localhost:3001`:
+
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+## Deployment
+
+Merging to `main` deploys the frontend to Vercel and the backend to Railway. The backend runs without a
+profile, which is the secure production configuration.
+
+| Railway variable | Purpose |
+|---|---|
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Neon connection. Keep the password only in `DB_PASSWORD` |
+| `JWT_SECRET_KEY` | Signs sessions. The app will not start if it is missing or weak |
+| `ALLOWED_ORIGINS` | CORS: the frontend URL only, never `*` |
+| `SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES` | `.*`, to read the client IP behind Railway's proxy. Safe only behind a proxy that overwrites `X-Forwarded-For` |
+| `JWT_EXPIRATION` | Optional session length, `12h` by default |
+| `KIOSCO_TIME_ZONE` | Optional business time zone, `America/Argentina/Buenos_Aires` by default |
+
+Vercel only needs `NEXT_PUBLIC_API_URL`, pointing to the Railway API (`https://<service>.up.railway.app/api`).
+
+## License
+
+[MIT](LICENSE)

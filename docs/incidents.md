@@ -24,3 +24,29 @@ Se detectó un producto ('Talco') con un precio desmesurado ($35.006.598.300.000
 - Es importante validar datos en todas las capas (frontend, backend, base de datos).
 - Los datos corruptos pueden venir de fuentes externas (scripts, inserciones manuales).
 - Documentar los incidentes ayuda a prevenir futuros problemas.
+
+## 2026-10-21: Filtración de variables de entorno en Railway
+
+### Descripción
+Railway (donde corre el backend) informó actividad no autorizada en los sistemas que guardan las variables
+de entorno de sus clientes, con acceso a parte de sus valores descifrados. Recomendó a todos los clientes
+rotar sus secretos. Durante el incidente los despliegues quedaron pausados unos dos días.
+
+### Impacto
+- Dos secretos del proyecto estaban expuestos: la contraseña de la base (`DB_PASSWORD`) y la clave que
+  firma las sesiones (`JWT_SECRET_KEY`). Con la segunda se podría fabricar una sesión de administrador.
+- Mientras los despliegues estuvieron pausados, el frontend y el backend quedaron en versiones distintas.
+
+### Respuesta
+1. **Evaluar:** de las 6 variables, solo 2 eran secretas; se verificó que `DB_URL` no incluía credenciales.
+2. **Contener:** se rotaron la contraseña del rol de Neon y `JWT_SECRET_KEY` en una sola tanda,
+   generando el secreto nuevo localmente (`openssl rand -base64 32`).
+3. **Verificar:** en los logs, el backend se conectó con la contraseña nueva y rechazó un token firmado
+   con la clave anterior (`Rejected invalid JWT (SignatureException)`).
+4. **Investigar:** se revisó la tabla de usuarios: ids consecutivos, sin administradores desconocidos.
+5. **Desplegar en orden:** primero el backend y después el frontend, para no volver a mezclar versiones.
+
+### Lecciones aprendidas
+- Ante una filtración anunciada por un proveedor, se asume que el secreto se filtró y se rota sin esperar confirmación.
+- Cada secreto debe vivir en un solo lugar: si estuviera repetido (por ejemplo, también dentro de la URL), habría que rotarlo dos veces.
+- Después de cada merge hay que verificar que el despliegue haya ocurrido: el de Vercel no se disparó solo.
