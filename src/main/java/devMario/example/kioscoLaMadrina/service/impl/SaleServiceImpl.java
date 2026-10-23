@@ -3,6 +3,8 @@ package devMario.example.kioscoLaMadrina.service.impl;
 import devMario.example.kioscoLaMadrina.dto.SaleItemRequestDTO;
 import devMario.example.kioscoLaMadrina.exception.InsufficientStockException;
 import devMario.example.kioscoLaMadrina.exception.ProductNotAvailableException;
+import devMario.example.kioscoLaMadrina.exception.SaleAlreadyVoidedException;
+import devMario.example.kioscoLaMadrina.exception.SaleNotVoidableException;
 import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
 import devMario.example.kioscoLaMadrina.model.*;
@@ -126,6 +128,26 @@ public class SaleServiceImpl implements SaleService {
     @Transactional(readOnly = true)
     public List<devMario.example.kioscoLaMadrina.dto.TopSellerDTO> getTopSellers() {
         return saleRepository.findTopSellers(org.springframework.data.domain.PageRequest.of(0, 5));
+    }
+
+    @Override
+    public SaleResponseDTO voidSale(Long saleId, String reason, String adminUsername) {
+        Sale sale = saleRepository.getRequiredById(saleId);
+        LocalDate today = LocalDate.now(clock.withZone(businessZone));
+        if (!sale.getDateTime().atZone(businessZone).toLocalDate().equals(today)) {
+            throw new SaleNotVoidableException(saleId);
+        }
+        // Se leen antes de marcar la venta: el UPDATE limpia el contexto y los ítems ya no se podrían cargar.
+        List<SaleDetail> details = List.copyOf(sale.getDetails());
+        User admin = userRepository.getRequiredByUsername(adminUsername);
+
+        if (saleRepository.markVoidedIfActive(saleId, Instant.now(clock), admin, reason.strip()) == 0) {
+            throw new SaleAlreadyVoidedException(saleId);
+        }
+        for (SaleDetail detail : details) {
+            productRepository.increaseStock(detail.getProduct().getId(), detail.getQuantity());
+        }
+        return saleMapper.toDTO(saleRepository.getRequiredById(saleId));
     }
 
     /** Instante en que empieza ese día en la zona del negocio (00:00 de Argentina). */

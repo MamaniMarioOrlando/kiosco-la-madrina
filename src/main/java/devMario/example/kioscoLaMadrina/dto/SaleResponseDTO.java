@@ -11,5 +11,8 @@ public record SaleResponseDTO(
         BigDecimal totalAmount,
         String username,
         List<SaleDetailDTO> details,
-        PaymentMethod paymentMethod) {
+        PaymentMethod paymentMethod,
+        Instant voidedAt,
+        String voidedBy,
+        String voidReason) {
 }

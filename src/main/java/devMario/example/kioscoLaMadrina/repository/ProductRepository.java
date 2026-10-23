@@ -20,6 +20,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             + "WHERE p.id = :id AND p.stockQuantity >= :quantity")
     int decreaseStockIfAvailable(@Param("id") Long id, @Param("quantity") int quantity);
 
+    /** Devuelve mercadería al stock (por ejemplo, al anular una venta). Atómico, igual que el descuento. */
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE Product p SET p.stockQuantity = p.stockQuantity + :quantity WHERE p.id = :id")
+    void increaseStock(@Param("id") Long id, @Param("quantity") int quantity);
+
     /** Busca un producto que debe existir; si no existe, la API responde 404. */
     default Product getRequiredById(Long id) {
         return findById(id).orElseThrow(

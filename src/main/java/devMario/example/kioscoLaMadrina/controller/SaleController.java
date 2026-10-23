@@ -4,7 +4,9 @@ import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
 import devMario.example.kioscoLaMadrina.service.SaleService;
 import jakarta.validation.Valid;
+import devMario.example.kioscoLaMadrina.dto.VoidSaleRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,14 @@ public class SaleController {
     public SaleResponseDTO createSale(@Valid @RequestBody SaleRequestDTO request) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return saleService.createSale(request, userDetails.getUsername());
+    }
+
+    @Operation(summary = "Void sale", description = "Voids a sale from today and returns its items to stock. Admin only.")
+    @PostMapping("/{id}/void")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public SaleResponseDTO voidSale(@PathVariable Long id, @Valid @RequestBody VoidSaleRequestDTO request) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return saleService.voidSale(id, request.reason(), userDetails.getUsername());
     }
 
     @Operation(summary = "List sales", description = "Retrieves paginated sales, optionally filtered by date.")
