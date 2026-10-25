@@ -4,7 +4,6 @@ import devMario.example.kioscoLaMadrina.dto.ProductDTO;
 import devMario.example.kioscoLaMadrina.dto.UpdateStatusRequestDTO;
 import devMario.example.kioscoLaMadrina.service.ProductService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,8 +14,11 @@ import java.util.List;
 @RequestMapping("/api/products")
 @Tag(name = "Products", description = "Management of products inventory")
 public class ProductController {
-    @Autowired
-    ProductService productService;
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @Operation(summary = "List products", description = "Retrieves the catalog: active products only.")
     @GetMapping

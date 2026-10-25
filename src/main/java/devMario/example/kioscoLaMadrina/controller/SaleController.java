@@ -5,7 +5,6 @@ import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
 import devMario.example.kioscoLaMadrina.service.SaleService;
 import jakarta.validation.Valid;
 import devMario.example.kioscoLaMadrina.dto.VoidSaleRequestDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,8 +16,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/sales")
 @Tag(name = "Sales", description = "Management of sales transactions")
 public class SaleController {
-    @Autowired
-    SaleService saleService;
+    private final SaleService saleService;
+
+    public SaleController(SaleService saleService) {
+        this.saleService = saleService;
+    }
 
     @Operation(summary = "Register sale", description = "Creates a new sale transaction for the authenticated user.")
     @PostMapping
