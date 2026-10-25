@@ -11,7 +11,6 @@ import devMario.example.kioscoLaMadrina.model.*;
 import devMario.example.kioscoLaMadrina.repository.*;
 import devMario.example.kioscoLaMadrina.service.SaleService;
 import devMario.example.kioscoLaMadrina.mapper.SaleMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,19 +25,26 @@ import java.util.List;
 @Service
 @Transactional
 public class SaleServiceImpl implements SaleService {
+    private final SaleRepository saleRepository;
+    private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final SaleMapper saleMapper;
+    private final Clock clock;
+    private final ZoneId businessZone;
 
-    @Autowired
-    private SaleRepository saleRepository;
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private SaleMapper saleMapper;
-    @Autowired
-    private Clock clock;
-    @Autowired
-    private ZoneId businessZone;
+    public SaleServiceImpl(SaleRepository saleRepository,
+                           ProductRepository productRepository,
+                           UserRepository userRepository,
+                           SaleMapper saleMapper,
+                           Clock clock,
+                           ZoneId businessZone) {
+        this.saleRepository = saleRepository;
+        this.productRepository = productRepository;
+        this.userRepository = userRepository;
+        this.saleMapper = saleMapper;
+        this.clock = clock;
+        this.businessZone = businessZone;
+    }
 
     @Override
     public SaleResponseDTO createSale(SaleRequestDTO request, String username) {

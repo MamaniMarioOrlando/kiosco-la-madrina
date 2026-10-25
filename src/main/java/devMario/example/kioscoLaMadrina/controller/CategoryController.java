@@ -3,7 +3,6 @@ package devMario.example.kioscoLaMadrina.controller;
 import devMario.example.kioscoLaMadrina.dto.CategoryDTO;
 import devMario.example.kioscoLaMadrina.service.CategoryService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,8 +13,11 @@ import java.util.List;
 @RequestMapping("/api/categories")
 @Tag(name = "Categories", description = "Management of product categories")
 public class CategoryController {
-    @Autowired
-    CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @Operation(summary = "List categories", description = "Retrieves all available product categories.")
     @GetMapping

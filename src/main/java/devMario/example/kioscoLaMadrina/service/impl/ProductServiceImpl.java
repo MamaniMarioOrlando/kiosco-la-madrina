@@ -7,7 +7,6 @@ import devMario.example.kioscoLaMadrina.repository.CategoryRepository;
 import devMario.example.kioscoLaMadrina.repository.ProductRepository;
 import devMario.example.kioscoLaMadrina.service.ProductService;
 import devMario.example.kioscoLaMadrina.mapper.ProductMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +16,17 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductMapper productMapper;
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private ProductMapper productMapper;
+    public ProductServiceImpl(ProductRepository productRepository,
+                              CategoryRepository categoryRepository,
+                              ProductMapper productMapper) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.productMapper = productMapper;
+    }
 
     @Override
     @Transactional(readOnly = true)
