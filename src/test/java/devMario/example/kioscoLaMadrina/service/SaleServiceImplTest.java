@@ -17,14 +17,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 
@@ -50,10 +49,8 @@ public class SaleServiceImplTest {
         // Reloj fijo: la hora de la venta es predecible y se puede verificar.
         private static final Instant NOW = Instant.parse("2026-10-22T02:30:00Z");
 
-        @Spy
-        private Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
+        private final Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
 
-        @InjectMocks
         private SaleServiceImpl saleService;
 
         private User testUser;
@@ -61,6 +58,10 @@ public class SaleServiceImplTest {
 
         @BeforeEach
         void setUp() {
+                // Armado a mano, como lo haría Spring: si el servicio suma una dependencia, este test no compila.
+                saleService = new SaleServiceImpl(saleRepository, productRepository, userRepository, saleMapper,
+                                clock, ZoneId.of("America/Argentina/Buenos_Aires"));
+
                 // Configuramos datos falsos iniciales antes de cada test
                 testUser = new User();
                 testUser.setUsername("testadmin");
