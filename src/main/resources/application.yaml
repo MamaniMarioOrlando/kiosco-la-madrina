@@ -18,6 +18,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Evita el problema N+1: al cargar relaciones lazy (los ítems de cada venta, sus productos) Hibernate
+        # las trae para hasta 50 entidades juntas con un IN (...), en vez de una consulta por cada una.
+        default_batch_fetch_size: 50
     open-in-view: false
   flyway:
     enabled: true
