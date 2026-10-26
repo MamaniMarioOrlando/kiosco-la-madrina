@@ -6,6 +6,7 @@ import devMario.example.kioscoLaMadrina.security.SecurityErrorResponder;
 import devMario.example.kioscoLaMadrina.security.ratelimit.RateLimitConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -16,7 +17,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-@WebMvcTest(controllers = ProductController.class)
+// Sin el usuario en memoria que Spring Boot crea por defecto: su condición se evalúa antes de registrar
+// el mock de UserDetailsServiceImpl, así que quedarían dos UserDetailsService (y un WARN al arrancar).
+@WebMvcTest(controllers = ProductController.class, excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class)
 // El filtro de rate limiting (capa web) necesita sus políticas y el formato JSON de errores.
 @Import({RateLimitConfig.class, SecurityErrorResponder.class})
 @EnableMethodSecurity
