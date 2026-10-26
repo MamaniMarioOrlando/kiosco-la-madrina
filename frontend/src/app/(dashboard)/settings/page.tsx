@@ -127,6 +127,7 @@ export default function SettingsPage() {
                                     user ? "bg-gradient-to-tr from-orange-500 to-orange-400" : "bg-slate-200 dark:bg-slate-800 animate-pulse"
                                 )}>
                                     {user?.avatarUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element -- avatar en base64 (data URL): next/image no lo optimiza
                                         <img src={user.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                                     ) : (
                                         initial
