@@ -18,6 +18,7 @@ import {
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/api';
+import { isAdmin, useCurrentUser } from '@/lib/session';
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
@@ -33,14 +34,19 @@ export function Sidebar({ className }: { className?: string }) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
 
-    const [user, setUser] = useState<{ roles: string[] } | null>(null);
+    const user = useCurrentUser();
     const [hasLowStock, setHasLowStock] = useState(false);
 
     useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            setUser(JSON.parse(userData));
-        }
+        const checkLowStock = async () => {
+            try {
+                const response = await api.get<{ stockQuantity: number }[]>('/products');
+                setHasLowStock(response.data.some(p => p.stockQuantity < 5));
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
         checkLowStock();
 
         // Refresh status every 30 seconds
@@ -48,17 +54,6 @@ export function Sidebar({ className }: { className?: string }) {
         return () => clearInterval(interval);
     }, [pathname]);
 
-    const checkLowStock = async () => {
-        try {
-            const response = await api.get('/products');
-            const low = response.data.some((p: any) => p.stockQuantity < 5);
-            setHasLowStock(low);
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const isAdmin = user?.roles?.some(r => r.toLowerCase().includes('admin'));
 
     return (
         <>
@@ -83,7 +78,7 @@ export function Sidebar({ className }: { className?: string }) {
 
                 <nav className="mt-6 px-4 space-y-2">
                     {sidebarItems.map((item) => {
-                        if (item.adminOnly && !isAdmin) return null;
+                        if (item.adminOnly && !isAdmin(user)) return null;
 
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
