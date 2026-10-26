@@ -7,7 +7,6 @@ import {
     LayoutDashboard,
     ShoppingBasket,
     Tags,
-    FileText,
     Settings,
     Menu,
     X,

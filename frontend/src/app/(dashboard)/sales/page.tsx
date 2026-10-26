@@ -6,14 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode, Handshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

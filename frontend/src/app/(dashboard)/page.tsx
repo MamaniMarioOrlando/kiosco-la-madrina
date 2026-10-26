@@ -81,7 +81,9 @@ export default function Home() {
           if (parsed.roles && parsed.roles.some((r: string) => r.toLowerCase().includes('admin'))) {
             setIsAdmin(true);
           }
-        } catch (e) {}
+        } catch {
+          // Usuario guardado ilegible: se lo trata como no admin.
+        }
       }
       fetchDashboardData();
     }
