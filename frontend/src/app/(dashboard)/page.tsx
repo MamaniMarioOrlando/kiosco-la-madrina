@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { isAxiosError } from 'axios';
 import api from '@/lib/api';
 import { motion } from 'framer-motion';
 import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X } from 'lucide-react';
@@ -58,9 +59,9 @@ export default function Home() {
       toast.success(`${product.name} reabastecido (+${editStockValue}). Total: ${newTotalStock}`);
       setEditingProductId(null);
       
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      if (err.response?.status === 403) {
+      if (isAxiosError(err) && err.response?.status === 403) {
         toast.error('No tienes permisos (Necesitas rol ADMIN)');
       } else {
         toast.error('Error al actualizar el stock');
