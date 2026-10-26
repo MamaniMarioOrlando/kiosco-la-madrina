@@ -72,10 +72,10 @@ public class ProductRepositoryTest {
 
         // 2. ACT (EJECUCIÓN DEL MÉTODO REBELDE)
         // El Project Manager definió que un umbral menor a 10 dispara una alerta a reposición.
-        List<Product> endangeredProducts = productRepository.findByStockQuantityLessThan(10);
+        List<Product> endangeredProducts = productRepository.findByActiveTrueAndStockQuantityLessThanOrderByStockQuantityAscIdAsc(10);
 
         // 3. ASSERT (COMPROBACIÓN DEL EFECTO)
-        // Spring Data JPA tuvo que convertir "findByStockQuantityLessThan" a un SELECT mágico de SQL.
+        // Spring Data JPA tuvo que convertir el nombre del método a un SELECT de SQL.
         // Si lo hizo bien, Papas Lays NO debe estar en la lista. Solo deben haber 2 (Gomitas y Bidu).
         assertEquals(2, endangeredProducts.size(), "Debería encontrar exactamente 2 productos a punto de agotarse");
         

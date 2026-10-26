@@ -34,8 +34,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     boolean existsByBarcode(String barcode);
 
-    // NUEVO MÉTODO (Búsqueda Rara): Nos sirve para encontrar productos a punto de agotarse
-    List<Product> findByStockQuantityLessThan(Integer threshold);
+    /** Productos que hay que reponer: activos y con menos unidades que el umbral, los más urgentes primero. */
+    List<Product> findByActiveTrueAndStockQuantityLessThanOrderByStockQuantityAscIdAsc(int threshold);
 
     /** Productos (activos o no) que referencian la categoría: todos impiden borrarla. */
     long countByCategoryId(Long categoryId);

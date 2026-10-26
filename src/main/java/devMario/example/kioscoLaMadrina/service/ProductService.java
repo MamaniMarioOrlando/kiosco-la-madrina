@@ -9,6 +9,9 @@ public interface ProductService {
 
     List<ProductDTO> findInactive();
 
+    /** Productos activos que hay que reponer, los más urgentes primero. */
+    List<ProductDTO> findLowStock();
+
     ProductDTO updateStatus(Long id, boolean active);
 
     ProductDTO findById(Long id);
