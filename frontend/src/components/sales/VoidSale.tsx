@@ -7,14 +7,13 @@ import { formatKioskDateTime, isTodayInKiosk } from '@/lib/time';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Ban } from 'lucide-react';
+import type { Sale } from '@/types/sale';
 
-export interface VoidableSale {
-    id: number;
-    dateTime: string;
-    voidedAt?: string | null;
-    voidedBy?: string | null;
-    voidReason?: string | null;
-}
+/**
+ * Lo único que este componente necesita de una venta (principio de segregación de interfaces):
+ * acepta cualquier objeto con estos campos, no exige la venta completa.
+ */
+export type VoidableSale = Pick<Sale, 'id' | 'dateTime' | 'voidedAt' | 'voidedBy' | 'voidReason'>;
 
 interface VoidSaleProps<T extends VoidableSale> {
     sale: T;
