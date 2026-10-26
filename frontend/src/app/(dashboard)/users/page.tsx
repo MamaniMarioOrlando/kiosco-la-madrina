@@ -20,16 +20,7 @@ import { Plus, Loader2, UserCheck, UserX } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-type Role = 'ADMIN' | 'EMPLOYEE';
-
-interface User {
-    id: number;
-    username: string;
-    email: string;
-    role: Role;
-    active: boolean;
-}
+import type { Role, User } from '@/types/user';
 
 const EMPTY_FORM = { username: '', email: '', password: '', role: 'EMPLOYEE' as Role };
 
