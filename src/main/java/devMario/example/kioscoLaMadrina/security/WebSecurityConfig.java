@@ -2,6 +2,7 @@ package devMario.example.kioscoLaMadrina.security;
 
 import devMario.example.kioscoLaMadrina.security.jwt.AuthEntryPointJwt;
 import devMario.example.kioscoLaMadrina.security.jwt.AuthTokenFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -97,7 +98,7 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    @org.springframework.beans.factory.annotation.Value("${ALLOWED_ORIGINS:http://localhost:3001}")
+    @Value("${ALLOWED_ORIGINS:http://localhost:3001}")
     private String allowedOrigins;
 
     @Bean
