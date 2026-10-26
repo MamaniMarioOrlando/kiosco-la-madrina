@@ -4,8 +4,10 @@ import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
 import devMario.example.kioscoLaMadrina.dto.PageResponseDTO;
 import devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO;
+import devMario.example.kioscoLaMadrina.dto.TopSellerDTO;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface SaleService {
     SaleResponseDTO createSale(SaleRequestDTO request, String username);
@@ -16,5 +18,5 @@ public interface SaleService {
 
     SaleResponseDTO voidSale(Long saleId, String reason, String adminUsername);
 
-    java.util.List<devMario.example.kioscoLaMadrina.dto.TopSellerDTO> getTopSellers();
+    List<TopSellerDTO> getTopSellers();
 }

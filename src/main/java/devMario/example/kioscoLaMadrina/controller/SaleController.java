@@ -1,16 +1,23 @@
 package devMario.example.kioscoLaMadrina.controller;
 
 import devMario.example.kioscoLaMadrina.dto.SaleRequestDTO;
+import devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO;
+import devMario.example.kioscoLaMadrina.dto.PageResponseDTO;
+import devMario.example.kioscoLaMadrina.dto.TopSellerDTO;
 import devMario.example.kioscoLaMadrina.dto.SaleResponseDTO;
 import devMario.example.kioscoLaMadrina.service.SaleService;
 import jakarta.validation.Valid;
 import devMario.example.kioscoLaMadrina.dto.VoidSaleRequestDTO;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/sales")
@@ -39,23 +46,23 @@ public class SaleController {
 
     @Operation(summary = "List sales", description = "Retrieves paginated sales, optionally filtered by date.")
     @GetMapping
-    public devMario.example.kioscoLaMadrina.dto.PageResponseDTO<SaleResponseDTO> getSales(
+    public PageResponseDTO<SaleResponseDTO> getSales(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size,
-            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return saleService.getSales(date, page, size);
     }
 
     @Operation(summary = "Get sales summary", description = "Retrieves the sales summary for a specific date (or all time if no date provided).")
     @GetMapping("/summary")
-    public devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO getSummary(
-            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+    public DailySalesSummaryDTO getSummary(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return saleService.getSummary(date);
     }
 
     @Operation(summary = "Get top sellers", description = "Retrieves top 5 selling products")
     @GetMapping("/top-sellers")
-    public java.util.List<devMario.example.kioscoLaMadrina.dto.TopSellerDTO> getTopSellers() {
+    public List<TopSellerDTO> getTopSellers() {
         return saleService.getTopSellers();
     }
 }

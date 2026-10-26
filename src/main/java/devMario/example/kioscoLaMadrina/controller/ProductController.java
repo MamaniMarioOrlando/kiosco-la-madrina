@@ -4,6 +4,7 @@ import devMario.example.kioscoLaMadrina.dto.ProductDTO;
 import devMario.example.kioscoLaMadrina.dto.UpdateStatusRequestDTO;
 import devMario.example.kioscoLaMadrina.service.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +50,7 @@ public class ProductController {
     @Operation(summary = "Create product", description = "Creates a new product. Requires ADMIN role.")
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.CREATED)
     public ProductDTO create(@Valid @RequestBody ProductDTO dto) {
         return productService.create(dto);
     }

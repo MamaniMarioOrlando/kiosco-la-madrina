@@ -1,6 +1,9 @@
 package devMario.example.kioscoLaMadrina.service.impl;
 
 import devMario.example.kioscoLaMadrina.dto.SaleItemRequestDTO;
+import devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO;
+import devMario.example.kioscoLaMadrina.dto.PageResponseDTO;
+import devMario.example.kioscoLaMadrina.dto.TopSellerDTO;
 import devMario.example.kioscoLaMadrina.exception.InsufficientStockException;
 import devMario.example.kioscoLaMadrina.exception.ProductNotAvailableException;
 import devMario.example.kioscoLaMadrina.exception.SaleAlreadyVoidedException;
@@ -11,6 +14,10 @@ import devMario.example.kioscoLaMadrina.model.*;
 import devMario.example.kioscoLaMadrina.repository.*;
 import devMario.example.kioscoLaMadrina.service.SaleService;
 import devMario.example.kioscoLaMadrina.mapper.SaleMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,9 +86,9 @@ public class SaleServiceImpl implements SaleService {
 
     @Override
     @Transactional(readOnly = true)
-    public devMario.example.kioscoLaMadrina.dto.PageResponseDTO<SaleResponseDTO> getSales(LocalDate date, int page, int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("dateTime").descending());
-        org.springframework.data.domain.Page<Sale> salesPage;
+    public PageResponseDTO<SaleResponseDTO> getSales(LocalDate date, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dateTime").descending());
+        Page<Sale> salesPage;
         
         if (date != null) {
             salesPage = saleRepository.findByDateTimeGreaterThanEqualAndDateTimeLessThan(
@@ -94,7 +101,7 @@ public class SaleServiceImpl implements SaleService {
                 .map(saleMapper::toDTO)
                 .collect(Collectors.toList());
 
-        return new devMario.example.kioscoLaMadrina.dto.PageResponseDTO<>(
+        return new PageResponseDTO<>(
                 content,
                 salesPage.getNumber(),
                 salesPage.getSize(),
@@ -106,7 +113,7 @@ public class SaleServiceImpl implements SaleService {
 
     @Override
     @Transactional(readOnly = true)
-    public devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO getSummary(LocalDate date) {
+    public DailySalesSummaryDTO getSummary(LocalDate date) {
         List<Object[]> results = date != null
                 ? saleRepository.getSalesSummaryByPaymentMethodBetween(startOf(date), startOf(date.plusDays(1)))
                 : saleRepository.getSalesSummaryByPaymentMethod();
@@ -123,7 +130,7 @@ public class SaleServiceImpl implements SaleService {
             }
         }
 
-        return new devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO(
+        return new DailySalesSummaryDTO(
                 cashTotal,
                 mpTotal,
                 cashTotal.add(mpTotal)
@@ -132,8 +139,8 @@ public class SaleServiceImpl implements SaleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<devMario.example.kioscoLaMadrina.dto.TopSellerDTO> getTopSellers() {
-        return saleRepository.findTopSellers(org.springframework.data.domain.PageRequest.of(0, 5));
+    public List<TopSellerDTO> getTopSellers() {
+        return saleRepository.findTopSellers(PageRequest.of(0, 5));
     }
 
     @Override
