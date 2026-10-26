@@ -136,7 +136,7 @@ export default function ProductsPage() {
             name: p.name,
             price: p.price.toString(),
             stockQuantity: p.stockQuantity.toString(),
-            categoryId: p.categoryId.toString()
+            categoryId: p.categoryId?.toString() ?? ''
         });
         setErrors({});
         setIsAdding(true);
