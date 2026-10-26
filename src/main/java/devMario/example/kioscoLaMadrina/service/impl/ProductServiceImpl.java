@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
+    /** Con menos unidades que esto, el producto hay que reponerlo. Única fuente de la regla (el frontend no la repite). */
+    static final int LOW_STOCK_THRESHOLD = 5;
+
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
@@ -40,6 +43,15 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public List<ProductDTO> findInactive() {
         return productRepository.findByActiveFalse().stream()
+                .map(productMapper::toDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductDTO> findLowStock() {
+        return productRepository.findByActiveTrueAndStockQuantityLessThanOrderByStockQuantityAscIdAsc(LOW_STOCK_THRESHOLD)
+                .stream()
                 .map(productMapper::toDTO)
                 .toList();
     }

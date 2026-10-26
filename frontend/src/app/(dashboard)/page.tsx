@@ -50,11 +50,10 @@ export default function Home() {
       };
 
       await api.put(`/products/${product.id}`, updatedProduct);
-      
-      setLowStockProducts(prev => 
-        prev.map(p => p.id === product.id ? { ...p, stockQuantity: newTotalStock } : p)
-            .filter(p => p.stockQuantity < 5)
-      );
+
+      // El backend decide qué es stock bajo: si con la reposición dejó de serlo, sale de la lista.
+      const lowStockRes = await api.get<Product[]>('/products/low-stock');
+      setLowStockProducts(lowStockRes.data);
       
       toast.success(`${product.name} reabastecido (+${editStockValue}). Total: ${newTotalStock}`);
       setEditingProductId(null);
@@ -92,11 +91,12 @@ export default function Home() {
   const fetchDashboardData = async () => {
     try {
       const today = todayInKiosk();
-      const [productsRes, categoriesRes, summaryRes, topSellersRes] = await Promise.all([
+      const [productsRes, categoriesRes, summaryRes, topSellersRes, lowStockRes] = await Promise.all([
         api.get('/products'),
         api.get('/categories'),
         api.get(`/sales/summary?date=${today}`),
-        api.get('/sales/top-sellers')
+        api.get('/sales/top-sellers'),
+        api.get<Product[]>('/products/low-stock')
       ]);
 
       const products: Product[] = productsRes.data;
@@ -104,8 +104,8 @@ export default function Home() {
       // Calculate Today's Sales
       const todayTotal = summaryRes.data?.grandTotal || 0;
 
-      // Low Stock Alerts (Stock < 5)
-      const lowStock = products.filter(p => p.stockQuantity < 5);
+      // Ya vienen ordenados del más urgente al menos urgente.
+      const lowStock = lowStockRes.data;
 
       setStats({
         productCount: products.length,
@@ -228,7 +228,7 @@ export default function Home() {
 
           {lowStockProducts.length > 0 ? (
             <div className="space-y-3">
-              {lowStockProducts.sort((a, b) => a.stockQuantity - b.stockQuantity).map(p => (
+              {lowStockProducts.map(p => (
                 <div key={p.id} className={cn(
                   "flex items-center justify-between p-3 rounded-xl border transition-all",
                   p.stockQuantity < 3

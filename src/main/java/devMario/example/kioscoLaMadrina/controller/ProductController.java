@@ -34,6 +34,12 @@ public class ProductController {
         return productService.findInactive();
     }
 
+    @Operation(summary = "List low-stock products", description = "Active products that need restocking (fewer than 5 units), most urgent first.")
+    @GetMapping("/low-stock")
+    public List<ProductDTO> listLowStock() {
+        return productService.findLowStock();
+    }
+
     @Operation(summary = "Activate or deactivate product", description = "Inactive products are not sold nor listed. Requires ADMIN role.")
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAuthority('ADMIN')")
