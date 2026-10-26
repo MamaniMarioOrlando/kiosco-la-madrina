@@ -18,12 +18,8 @@ import {
 import { Plus, Loader2, Pencil, Trash2, X, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { Category } from '@/types/category';
 
-interface Category {
-    id: number;
-    name: string;
-    description: string;
-}
 
 export default function CategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);

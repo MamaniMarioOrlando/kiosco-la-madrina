@@ -21,12 +21,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { InactiveProducts } from '@/components/products/InactiveProducts';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { Product } from '@/types/product';
+import type { Category } from '@/types/category';
 
 
-interface Category {
-    id: number;
-    name: string;
-}
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
