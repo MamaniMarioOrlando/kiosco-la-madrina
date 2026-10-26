@@ -58,6 +58,7 @@ export function UserProfile() {
                 {/* Círculo del Avatar con gradiente */}
                 <div className="flex h-8 w-8 overflow-hidden items-center justify-center rounded-full bg-gradient-to-tr from-orange-500 to-orange-400 text-white font-bold text-sm shadow-sm ring-2 ring-white dark:ring-slate-900">
                     {avatarUrl ? (
+                         // eslint-disable-next-line @next/next/no-img-element -- avatar en base64 (data URL): next/image no lo optimiza
                          <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
                          initial
