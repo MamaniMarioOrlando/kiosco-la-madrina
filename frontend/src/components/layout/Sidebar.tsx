@@ -39,8 +39,8 @@ export function Sidebar({ className }: { className?: string }) {
     useEffect(() => {
         const checkLowStock = async () => {
             try {
-                const response = await api.get<{ stockQuantity: number }[]>('/products');
-                setHasLowStock(response.data.some(p => p.stockQuantity < 5));
+                const response = await api.get<unknown[]>('/products/low-stock');
+                setHasLowStock(response.data.length > 0);
             } catch (e) {
                 console.error(e);
             }

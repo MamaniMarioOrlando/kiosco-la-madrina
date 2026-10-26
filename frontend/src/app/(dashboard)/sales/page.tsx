@@ -108,11 +108,13 @@ export default function SalesPage() {
         setAmountPaid('');
 
         // Check for low stock after sale
-        const updatedProductsRes = await api.get('/products');
-        const updatedProducts: Product[] = updatedProductsRes.data;
-        setAllProducts(updatedProducts);
+        const [updatedProductsRes, lowStockRes] = await Promise.all([
+            api.get<Product[]>('/products'),
+            api.get<Product[]>('/products/low-stock'),
+        ]);
+        setAllProducts(updatedProductsRes.data);
 
-        const lowStockCount = updatedProducts.filter(p => p.stockQuantity < 5).length;
+        const lowStockCount = lowStockRes.data.length;
         if (lowStockCount > 0) {
             toast.warning(`Atención: Stock Bajo`, {
                 id: 'low-stock-alert',
