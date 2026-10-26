@@ -1,5 +1,6 @@
 package devMario.example.kioscoLaMadrina.repository;
 
+import devMario.example.kioscoLaMadrina.dto.PaymentMethodTotalDTO;
 import devMario.example.kioscoLaMadrina.dto.TopSellerDTO;
 import devMario.example.kioscoLaMadrina.exception.ResourceNotFoundException;
 import devMario.example.kioscoLaMadrina.model.User;
@@ -35,12 +36,14 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     // Rango semiabierto [from, to): el instante "to" es el comienzo del día siguiente y no se incluye.
     Page<Sale> findByDateTimeGreaterThanEqualAndDateTimeLessThan(Instant from, Instant to, Pageable pageable);
 
-    @Query("SELECT s.paymentMethod, SUM(s.totalAmount) FROM Sale s "
+    @Query("SELECT new devMario.example.kioscoLaMadrina.dto.PaymentMethodTotalDTO(s.paymentMethod, SUM(s.totalAmount)) "
+            + "FROM Sale s "
             + "WHERE s.dateTime >= :from AND s.dateTime < :to AND s.voidedAt IS NULL GROUP BY s.paymentMethod")
-    List<Object[]> getSalesSummaryByPaymentMethodBetween(@Param("from") Instant from, @Param("to") Instant to);
+    List<PaymentMethodTotalDTO> getSalesSummaryByPaymentMethodBetween(@Param("from") Instant from, @Param("to") Instant to);
 
-    @Query("SELECT s.paymentMethod, SUM(s.totalAmount) FROM Sale s WHERE s.voidedAt IS NULL GROUP BY s.paymentMethod")
-    List<Object[]> getSalesSummaryByPaymentMethod();
+    @Query("SELECT new devMario.example.kioscoLaMadrina.dto.PaymentMethodTotalDTO(s.paymentMethod, SUM(s.totalAmount)) "
+            + "FROM Sale s WHERE s.voidedAt IS NULL GROUP BY s.paymentMethod")
+    List<PaymentMethodTotalDTO> getSalesSummaryByPaymentMethod();
     // Las ventas anuladas no cuentan en ningún total ni ranking: siguen en el historial, pero no ocurrieron.
 
     // Agrupa por id (el nombre no es único). El id también desempata, para que el orden sea estable.

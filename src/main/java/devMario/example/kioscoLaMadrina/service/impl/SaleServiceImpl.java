@@ -3,6 +3,7 @@ package devMario.example.kioscoLaMadrina.service.impl;
 import devMario.example.kioscoLaMadrina.dto.SaleItemRequestDTO;
 import devMario.example.kioscoLaMadrina.dto.DailySalesSummaryDTO;
 import devMario.example.kioscoLaMadrina.dto.PageResponseDTO;
+import devMario.example.kioscoLaMadrina.dto.PaymentMethodTotalDTO;
 import devMario.example.kioscoLaMadrina.dto.TopSellerDTO;
 import devMario.example.kioscoLaMadrina.exception.InsufficientStockException;
 import devMario.example.kioscoLaMadrina.exception.ProductNotAvailableException;
@@ -114,19 +115,17 @@ public class SaleServiceImpl implements SaleService {
     @Override
     @Transactional(readOnly = true)
     public DailySalesSummaryDTO getSummary(LocalDate date) {
-        List<Object[]> results = date != null
+        List<PaymentMethodTotalDTO> totals = date != null
                 ? saleRepository.getSalesSummaryByPaymentMethodBetween(startOf(date), startOf(date.plusDays(1)))
                 : saleRepository.getSalesSummaryByPaymentMethod();
         BigDecimal cashTotal = BigDecimal.ZERO;
         BigDecimal mpTotal = BigDecimal.ZERO;
 
-        for (Object[] row : results) {
-            PaymentMethod method = (PaymentMethod) row[0];
-            BigDecimal sum = (row[1] != null) ? new BigDecimal(row[1].toString()) : BigDecimal.ZERO;
-            if (method == PaymentMethod.MERCADO_PAGO) {
-                mpTotal = mpTotal.add(sum);
+        for (PaymentMethodTotalDTO row : totals) {
+            if (row.paymentMethod() == PaymentMethod.MERCADO_PAGO) {
+                mpTotal = mpTotal.add(row.total());
             } else {
-                cashTotal = cashTotal.add(sum); // Defaults to cash
+                cashTotal = cashTotal.add(row.total()); // Una venta sin medio de pago registrado cuenta como efectivo
             }
         }
 
