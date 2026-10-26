@@ -12,6 +12,11 @@ spring:
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 5
+      # Neon (plan gratis) suspende la base tras 5 minutos sin uso y corta las conexiones abiertas.
+      # El pool suelta las ociosas a los 2 minutos: después de una pausa abre conexiones nuevas en vez
+      # de chocar con conexiones muertas ("Failed to validate connection") y demorar el primer pedido.
+      minimum-idle: 0
+      idle-timeout: 120000
   jpa:
     hibernate:
       ddl-auto: validate
