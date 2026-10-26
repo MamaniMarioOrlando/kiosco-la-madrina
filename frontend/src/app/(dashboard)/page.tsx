@@ -9,16 +9,8 @@ import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X 
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { todayInKiosk } from '@/lib/time';
+import type { Product } from '@/types/product';
 
-interface Product {
-  id: number;
-  barcode: string;
-  name: string;
-  price: number;
-  stockQuantity: number;
-  categoryId: number;
-  categoryName?: string;
-}
 
 export default function Home() {
   const router = useRouter();

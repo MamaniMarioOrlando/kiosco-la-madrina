@@ -8,14 +8,8 @@ import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode, Handshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Product } from '@/types/product';
 
-interface Product {
-    id: number;
-    barcode: string;
-    name: string;
-    price: number;
-    stockQuantity: number;
-}
 
 interface CartItem extends Product {
     quantity: number;
