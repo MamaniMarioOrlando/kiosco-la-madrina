@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, User } from 'lucide-react';
-import api from '@/lib/api';
+import { authService } from '@/services/authService';
 import { isAxiosError } from 'axios';
 import { startSession } from '@/lib/session';
 import { motion } from 'framer-motion';
@@ -45,14 +45,14 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const response = await api.post('/auth/signin', {
-                username,
-                password,
+            const session = await authService.login({ username, password });
+
+            startSession(session.token, {
+                id: session.id,
+                username: session.username,
+                roles: session.roles,
+                avatarUrl: session.avatarUrl,
             });
-
-            const { token, roles, username: user, id, avatarUrl } = response.data;
-
-            startSession(token, { username: user, roles, id, avatarUrl });
 
             router.push('/');
         } catch (err) {

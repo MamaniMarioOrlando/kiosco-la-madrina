@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
+import { userService } from '@/services/userService';
 import { apiErrorMessage } from '@/lib/errors';
 import { useCurrentUser } from '@/lib/session';
 import { AdminOnly } from '@/components/auth/AdminOnly';
@@ -20,9 +20,9 @@ import { Plus, Loader2, UserCheck, UserX } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { Role, User } from '@/types/user';
+import type { CreateUserRequest, Role, User } from '@/types/user';
 
-const EMPTY_FORM = { username: '', email: '', password: '', role: 'EMPLOYEE' as Role };
+const EMPTY_FORM: CreateUserRequest = { username: '', email: '', password: '', role: 'EMPLOYEE' };
 
 const ROLE_LABELS: Record<Role, string> = {
     ADMIN: 'Administrador',
@@ -52,8 +52,7 @@ function UsersManager() {
 
     const fetchUsers = async () => {
         try {
-            const response = await api.get('/users');
-            setUsers(response.data);
+            setUsers(await userService.findAll());
         } catch (err) {
             toast.error(apiErrorMessage(err, 'Error al cargar los usuarios'));
         } finally {
@@ -65,7 +64,7 @@ function UsersManager() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await api.post('/users', form);
+            await userService.create(form);
             toast.success(`Usuario "${form.username}" creado`);
             setForm(EMPTY_FORM);
             setIsAdding(false);
@@ -82,7 +81,7 @@ function UsersManager() {
         if (!confirm(`¿Seguro que querés ${action} a "${user.username}"?`)) return;
 
         try {
-            await api.patch(`/users/${user.id}/status`, { active: !user.active });
+            await userService.setActive(user.id, !user.active);
             toast.success(`Usuario "${user.username}" ${user.active ? 'desactivado' : 'activado'}`);
             fetchUsers();
         } catch (err) {
