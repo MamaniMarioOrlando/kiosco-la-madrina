@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAxiosError } from 'axios';
 import api from '@/lib/api';
+import { categoryService } from '@/services/categoryService';
 import { motion } from 'framer-motion';
 import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -84,9 +85,9 @@ export default function Home() {
   const fetchDashboardData = async () => {
     try {
       const today = todayInKiosk();
-      const [productsRes, categoriesRes, summaryRes, topSellersRes, lowStockRes] = await Promise.all([
+      const [productsRes, categories, summaryRes, topSellersRes, lowStockRes] = await Promise.all([
         api.get('/products'),
-        api.get('/categories'),
+        categoryService.findAll(),
         api.get<DailySalesSummary>(`/sales/summary?date=${today}`),
         api.get<TopSeller[]>('/sales/top-sellers'),
         api.get<Product[]>('/products/low-stock')
@@ -102,7 +103,7 @@ export default function Home() {
 
       setStats({
         productCount: products.length,
-        categoryCount: categoriesRes.data.length,
+        categoryCount: categories.length,
         todaySales: todayTotal
       });
       setLowStockProducts(lowStock);

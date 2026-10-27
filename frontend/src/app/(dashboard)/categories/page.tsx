@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import { Plus, Loader2, Pencil, Trash2, X, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Category } from '@/types/category';
+import { categoryService } from '@/services/categoryService';
 
 
 export default function CategoriesPage() {
@@ -49,8 +49,7 @@ export default function CategoriesPage() {
 
     const fetchCategories = async () => {
         try {
-            const response = await api.get('/categories');
-            setCategories(response.data);
+            setCategories(await categoryService.findAll());
         } catch (err) {
             toast.error(apiErrorMessage(err, 'Error al cargar las categorías'));
         } finally {
@@ -62,10 +61,7 @@ export default function CategoriesPage() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await api.post('/categories', {
-                name: newName,
-                description: newDesc
-            });
+            await categoryService.create({ name: newName, description: newDesc });
             setNewName('');
             setNewDesc('');
             setIsAdding(false);
@@ -82,7 +78,7 @@ export default function CategoriesPage() {
         if (!confirm('¿Estás seguro de eliminar esta categoría?')) return;
 
         try {
-            await api.delete(`/categories/${id}`);
+            await categoryService.remove(id);
             toast.success('Categoría eliminada');
             fetchCategories();
         } catch (err) {
@@ -99,10 +95,7 @@ export default function CategoriesPage() {
     const handleUpdateCategory = async (id: number) => {
         setSubmitting(true);
         try {
-            await api.put(`/categories/${id}`, {
-                name: editName,
-                description: editDesc
-            });
+            await categoryService.update(id, { name: editName, description: editDesc });
             setEditingId(null);
             fetchCategories();
         } catch (err) {

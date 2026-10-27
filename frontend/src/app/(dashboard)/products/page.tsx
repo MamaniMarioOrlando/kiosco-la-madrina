@@ -22,6 +22,7 @@ import { InactiveProducts } from '@/components/products/InactiveProducts';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import { categoryService } from '@/services/categoryService';
 
 
 
@@ -66,8 +67,7 @@ export default function ProductsPage() {
 
     const fetchCategories = async () => {
         try {
-            const response = await api.get('/categories');
-            setCategories(response.data);
+            setCategories(await categoryService.findAll());
         } catch (err) {
             toast.error(apiErrorMessage(err, 'Error al cargar las categorías'));
         }
