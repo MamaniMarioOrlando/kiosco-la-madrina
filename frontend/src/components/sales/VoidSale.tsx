@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import api from '@/lib/api';
+import { saleService } from '@/services/saleService';
 import { apiErrorMessage } from '@/lib/errors';
 import { formatKioskDateTime, isTodayInKiosk } from '@/lib/time';
 import { toast } from 'sonner';
@@ -15,18 +15,18 @@ import type { Sale } from '@/types/sale';
  */
 export type VoidableSale = Pick<Sale, 'id' | 'dateTime' | 'voidedAt' | 'voidedBy' | 'voidReason'>;
 
-interface VoidSaleProps<T extends VoidableSale> {
-    sale: T;
+interface VoidSaleProps {
+    sale: VoidableSale;
     canVoid: boolean;
-    /** Recibe la venta actualizada que devuelve la API. */
-    onVoided: (sale: T) => void;
+    /** Recibe la venta completa y actualizada que devuelve la API. */
+    onVoided: (sale: Sale) => void;
 }
 
 /**
  * Anulación de una venta dentro de su detalle. Si ya está anulada, muestra quién, cuándo y por qué.
  * Si no, y el usuario es admin y la venta es de hoy, permite anularla con un motivo obligatorio.
  */
-export function VoidSale<T extends VoidableSale>({ sale, canVoid, onVoided }: VoidSaleProps<T>) {
+export function VoidSale({ sale, canVoid, onVoided }: VoidSaleProps) {
     const [confirming, setConfirming] = useState(false);
     const [reason, setReason] = useState('');
     const [saving, setSaving] = useState(false);
@@ -49,9 +49,9 @@ export function VoidSale<T extends VoidableSale>({ sale, canVoid, onVoided }: Vo
     const submit = async () => {
         setSaving(true);
         try {
-            const response = await api.post<T>(`/sales/${sale.id}/void`, { reason: reason.trim() });
+            const voided = await saleService.voidSale(sale.id, reason.trim());
             toast.success(`Venta #${sale.id} anulada. La mercadería volvió al stock.`);
-            onVoided(response.data);
+            onVoided(voided);
         } catch (err) {
             toast.error(apiErrorMessage(err, 'No se pudo anular la venta'));
         } finally {

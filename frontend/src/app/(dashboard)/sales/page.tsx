@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
 import { productService } from '@/services/productService';
+import { saleService } from '@/services/saleService';
+import type { PaymentMethod, SaleRequest } from '@/types/sale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -88,7 +89,7 @@ export default function SalesPage() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const change = parseFloat(amountPaid) > 0 ? parseFloat(amountPaid) - total : 0;
 
-    const buildSalePayload = (method: string) => ({
+    const buildSalePayload = (method: PaymentMethod): SaleRequest => ({
         items: cart.map(item => ({
             productId: item.id,
             quantity: item.quantity
@@ -124,7 +125,7 @@ export default function SalesPage() {
         if (cart.length === 0) return;
         setSubmitting(true);
         try {
-            await api.post('/sales', buildSalePayload('CASH'));
+            await saleService.create(buildSalePayload('CASH'));
             await refreshStockAndCleanCart();
         } catch (err) {
             console.error(err);
@@ -138,7 +139,7 @@ export default function SalesPage() {
         if (cart.length === 0) return;
         setSubmitting(true);
         try {
-            await api.post('/sales', buildSalePayload('MERCADO_PAGO'));
+            await saleService.create(buildSalePayload('MERCADO_PAGO'));
             await refreshStockAndCleanCart();
         } catch (err) {
             console.error(err);

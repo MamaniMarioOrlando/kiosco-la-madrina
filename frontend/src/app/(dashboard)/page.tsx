@@ -3,16 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAxiosError } from 'axios';
-import api from '@/lib/api';
 import { categoryService } from '@/services/categoryService';
 import { productService } from '@/services/productService';
+import { saleService } from '@/services/saleService';
 import { motion } from 'framer-motion';
 import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { todayInKiosk } from '@/lib/time';
 import type { Product } from '@/types/product';
-import type { DailySalesSummary, TopSeller } from '@/types/sale';
+import type { TopSeller } from '@/types/sale';
 
 
 export default function Home() {
@@ -85,24 +85,22 @@ export default function Home() {
   const fetchDashboardData = async () => {
     try {
       const today = todayInKiosk();
-      const [products, categories, summaryRes, topSellersRes, lowStock] = await Promise.all([
+      const [products, categories, summary, topSellers, lowStock] = await Promise.all([
         productService.findAll(),
         categoryService.findAll(),
-        api.get<DailySalesSummary>(`/sales/summary?date=${today}`),
-        api.get<TopSeller[]>('/sales/top-sellers'),
+        saleService.getSummary(today),
+        saleService.findTopSellers(),
         productService.findLowStock()
       ]);
 
-      // Calculate Today's Sales
-      const todayTotal = summaryRes.data?.grandTotal || 0;
 
       setStats({
         productCount: products.length,
         categoryCount: categories.length,
-        todaySales: todayTotal
+        todaySales: summary.grandTotal
       });
       setLowStockProducts(lowStock);
-      setTopSellers(topSellersRes.data || []);
+      setTopSellers(topSellers);
 
       // Notify low stock
       if (lowStock.length > 0) {

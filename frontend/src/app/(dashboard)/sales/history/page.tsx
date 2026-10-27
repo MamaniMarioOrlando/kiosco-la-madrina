@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
+import { saleService } from '@/services/saleService';
 import {
     Table,
     TableBody,
@@ -18,7 +18,6 @@ import { formatKioskDateTime, todayInKiosk } from '@/lib/time';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 import { VoidSale } from '@/components/sales/VoidSale';
 import type { DailySalesSummary, Sale } from '@/types/sale';
-import type { PageResponse } from '@/types/page';
 
 
 
@@ -42,22 +41,19 @@ export default function SalesHistoryPage() {
     const fetchData = async (page: number, mode: 'TODAY' | 'ALL') => {
         setPageLoading(true);
         try {
-            const dateStr = todayInKiosk();
-            const dateParam = mode === 'TODAY' ? `date=${dateStr}&` : '';
-            
-            const [salesRes, summaryRes] = await Promise.all([
-                api.get<PageResponse<Sale>>(`/sales?${dateParam}page=${page}&size=${ITEMS_PER_PAGE}`),
-                api.get<DailySalesSummary>(`/sales/summary?${dateParam.replace('&', '')}`)
-            ]);
-            
-            setSales(salesRes.data.content);
-            setTotalPages(salesRes.data.totalPages);
-            setTotalElements(salesRes.data.totalElements);
-            setCurrentPage(page);
+            // Sin fecha, el backend devuelve todo el historial.
+            const date = mode === 'TODAY' ? todayInKiosk() : undefined;
 
-            if (summaryRes.data) {
-                setSummary(summaryRes.data);
-            }
+            const [salesPage, daySummary] = await Promise.all([
+                saleService.findPage({ date, page, size: ITEMS_PER_PAGE }),
+                saleService.getSummary(date)
+            ]);
+
+            setSales(salesPage.content);
+            setTotalPages(salesPage.totalPages);
+            setTotalElements(salesPage.totalElements);
+            setCurrentPage(page);
+            setSummary(daySummary);
         } catch (err) {
             console.error('Error fetching sales', err);
         } finally {

@@ -38,3 +38,22 @@ export interface TopSeller {
     name: string;
     quantity: number;
 }
+
+/** Una línea del carrito al vender (SaleItemRequestDTO): el precio lo pone el backend. */
+export interface SaleItemRequest {
+    productId: number;
+    quantity: number;
+}
+
+/** Venta nueva (SaleRequestDTO). */
+export interface SaleRequest {
+    items: SaleItemRequest[];
+    paymentMethod: PaymentMethod;
+}
+
+/** Filtros del historial. Sin date trae todas las ventas; con date (YYYY-MM-DD), solo las de ese día. */
+export interface SalePageQuery {
+    date?: string;
+    page: number;
+    size: number;
+}
