@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import api from '@/lib/api';
+import { productService } from '@/services/productService';
 import { apiErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -29,8 +29,7 @@ export function InactiveProducts({ reloadSignal, onReactivated }: InactiveProduc
 
     const load = useCallback(async () => {
         try {
-            const response = await api.get<Product[]>('/products/inactive');
-            setProducts(response.data);
+            setProducts(await productService.findInactive());
         } catch (err) {
             toast.error(apiErrorMessage(err, 'Error al cargar los productos inactivos'));
         }
@@ -43,7 +42,7 @@ export function InactiveProducts({ reloadSignal, onReactivated }: InactiveProduc
     const reactivate = async (product: Product) => {
         setReactivatingId(product.id);
         try {
-            await api.patch(`/products/${product.id}/status`, { active: true });
+            await productService.setActive(product.id, true);
             toast.success(`"${product.name}" vuelve a estar a la venta`);
             await load();
             onReactivated();

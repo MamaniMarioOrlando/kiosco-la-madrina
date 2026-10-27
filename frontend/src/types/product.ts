@@ -13,3 +13,6 @@ export interface Product {
     categoryName: string | null;
     active: boolean;
 }
+
+/** Lo que se envía al crear o editar: id y active los maneja el backend, categoryName lo deriva de categoryId. */
+export type ProductRequest = Omit<Product, 'id' | 'active' | 'categoryName'>;

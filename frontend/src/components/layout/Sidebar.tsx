@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import api from '@/lib/api';
+import { productService } from '@/services/productService';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 
 const sidebarItems = [
@@ -39,8 +39,8 @@ export function Sidebar({ className }: { className?: string }) {
     useEffect(() => {
         const checkLowStock = async () => {
             try {
-                const response = await api.get<unknown[]>('/products/low-stock');
-                setHasLowStock(response.data.length > 0);
+                const lowStock = await productService.findLowStock();
+                setHasLowStock(lowStock.length > 0);
             } catch (e) {
                 console.error(e);
             }

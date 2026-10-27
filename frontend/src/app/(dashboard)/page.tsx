@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { isAxiosError } from 'axios';
 import api from '@/lib/api';
 import { categoryService } from '@/services/categoryService';
+import { productService } from '@/services/productService';
 import { motion } from 'framer-motion';
 import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -43,11 +44,10 @@ export default function Home() {
         stockQuantity: newTotalStock
       };
 
-      await api.put(`/products/${product.id}`, updatedProduct);
+      await productService.update(product.id, updatedProduct);
 
       // El backend decide qué es stock bajo: si con la reposición dejó de serlo, sale de la lista.
-      const lowStockRes = await api.get<Product[]>('/products/low-stock');
-      setLowStockProducts(lowStockRes.data);
+      setLowStockProducts(await productService.findLowStock());
       
       toast.success(`${product.name} reabastecido (+${editStockValue}). Total: ${newTotalStock}`);
       setEditingProductId(null);
@@ -85,21 +85,16 @@ export default function Home() {
   const fetchDashboardData = async () => {
     try {
       const today = todayInKiosk();
-      const [productsRes, categories, summaryRes, topSellersRes, lowStockRes] = await Promise.all([
-        api.get('/products'),
+      const [products, categories, summaryRes, topSellersRes, lowStock] = await Promise.all([
+        productService.findAll(),
         categoryService.findAll(),
         api.get<DailySalesSummary>(`/sales/summary?date=${today}`),
         api.get<TopSeller[]>('/sales/top-sellers'),
-        api.get<Product[]>('/products/low-stock')
+        productService.findLowStock()
       ]);
-
-      const products: Product[] = productsRes.data;
 
       // Calculate Today's Sales
       const todayTotal = summaryRes.data?.grandTotal || 0;
-
-      // Ya vienen ordenados del más urgente al menos urgente.
-      const lowStock = lowStockRes.data;
 
       setStats({
         productCount: products.length,

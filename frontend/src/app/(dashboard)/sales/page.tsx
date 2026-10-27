@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { productService } from '@/services/productService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -30,8 +31,7 @@ export default function SalesPage() {
 
     const fetchProducts = async () => {
         try {
-            const response = await api.get('/products');
-            setAllProducts(response.data);
+            setAllProducts(await productService.findAll());
         } catch (err) {
             console.error('Error fetching products', err);
         } finally {
@@ -102,13 +102,13 @@ export default function SalesPage() {
         setAmountPaid('');
 
         // Check for low stock after sale
-        const [updatedProductsRes, lowStockRes] = await Promise.all([
-            api.get<Product[]>('/products'),
-            api.get<Product[]>('/products/low-stock'),
+        const [updatedProducts, lowStock] = await Promise.all([
+            productService.findAll(),
+            productService.findLowStock(),
         ]);
-        setAllProducts(updatedProductsRes.data);
+        setAllProducts(updatedProducts);
 
-        const lowStockCount = lowStockRes.data.length;
+        const lowStockCount = lowStock.length;
         if (lowStockCount > 0) {
             toast.warning(`Atención: Stock Bajo`, {
                 id: 'low-stock-alert',
