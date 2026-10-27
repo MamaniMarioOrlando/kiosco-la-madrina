@@ -9,16 +9,9 @@ import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X 
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { todayInKiosk } from '@/lib/time';
+import type { Product } from '@/types/product';
+import type { DailySalesSummary, TopSeller } from '@/types/sale';
 
-interface Product {
-  id: number;
-  barcode: string;
-  name: string;
-  price: number;
-  stockQuantity: number;
-  categoryId: number;
-  categoryName?: string;
-}
 
 export default function Home() {
   const router = useRouter();
@@ -28,7 +21,7 @@ export default function Home() {
     categoryCount: 0
   });
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
-  const [topSellers, setTopSellers] = useState<{ productId: number, name: string, quantity: number }[]>([]);
+  const [topSellers, setTopSellers] = useState<TopSeller[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
@@ -94,8 +87,8 @@ export default function Home() {
       const [productsRes, categoriesRes, summaryRes, topSellersRes, lowStockRes] = await Promise.all([
         api.get('/products'),
         api.get('/categories'),
-        api.get(`/sales/summary?date=${today}`),
-        api.get('/sales/top-sellers'),
+        api.get<DailySalesSummary>(`/sales/summary?date=${today}`),
+        api.get<TopSeller[]>('/sales/top-sellers'),
         api.get<Product[]>('/products/low-stock')
       ]);
 

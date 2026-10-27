@@ -20,21 +20,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { InactiveProducts } from '@/components/products/InactiveProducts';
 import { cn, formatCurrency } from '@/lib/utils';
+import type { Product } from '@/types/product';
+import type { Category } from '@/types/category';
 
-interface Product {
-    id: number;
-    barcode: string;
-    name: string;
-    price: number;
-    stockQuantity: number;
-    categoryId: number;
-    categoryName: string;
-}
 
-interface Category {
-    id: number;
-    name: string;
-}
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -136,7 +125,7 @@ export default function ProductsPage() {
             name: p.name,
             price: p.price.toString(),
             stockQuantity: p.stockQuantity.toString(),
-            categoryId: p.categoryId.toString()
+            categoryId: p.categoryId?.toString() ?? ''
         });
         setErrors({});
         setIsAdding(true);

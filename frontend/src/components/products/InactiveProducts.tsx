@@ -8,14 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Archive, Barcode, ChevronDown, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Product } from '@/types/product';
 
-interface InactiveProduct {
-    id: number;
-    barcode: string;
-    name: string;
-    stockQuantity: number;
-    categoryName: string;
-}
 
 interface InactiveProductsProps {
     /** Cambia cada vez que se desactiva un producto, para volver a cargar la lista. */
@@ -29,13 +23,13 @@ interface InactiveProductsProps {
  * No se muestra nada si no hay inactivos.
  */
 export function InactiveProducts({ reloadSignal, onReactivated }: InactiveProductsProps) {
-    const [products, setProducts] = useState<InactiveProduct[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [expanded, setExpanded] = useState(false);
     const [reactivatingId, setReactivatingId] = useState<number | null>(null);
 
     const load = useCallback(async () => {
         try {
-            const response = await api.get<InactiveProduct[]>('/products/inactive');
+            const response = await api.get<Product[]>('/products/inactive');
             setProducts(response.data);
         } catch (err) {
             toast.error(apiErrorMessage(err, 'Error al cargar los productos inactivos'));
@@ -46,7 +40,7 @@ export function InactiveProducts({ reloadSignal, onReactivated }: InactiveProduc
         load();
     }, [load, reloadSignal]);
 
-    const reactivate = async (product: InactiveProduct) => {
+    const reactivate = async (product: Product) => {
         setReactivatingId(product.id);
         try {
             await api.patch(`/products/${product.id}/status`, { active: true });

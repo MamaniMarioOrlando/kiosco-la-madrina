@@ -17,29 +17,14 @@ import { cn, formatCurrency } from '@/lib/utils';
 import { formatKioskDateTime, todayInKiosk } from '@/lib/time';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 import { VoidSale } from '@/components/sales/VoidSale';
+import type { DailySalesSummary, Sale } from '@/types/sale';
+import type { PageResponse } from '@/types/page';
 
-interface SaleDetail {
-    productName: string;
-    quantity: number;
-    unitPrice: number;
-    subtotal: number;
-}
 
-interface Sale {
-    id: number;
-    dateTime: string;
-    totalAmount: number;
-    username: string;
-    details: SaleDetail[];
-    paymentMethod?: 'CASH' | 'MERCADO_PAGO';
-    voidedAt?: string | null;
-    voidedBy?: string | null;
-    voidReason?: string | null;
-}
 
 export default function SalesHistoryPage() {
     const [sales, setSales] = useState<Sale[]>([]);
-    const [summary, setSummary] = useState({ cashTotal: 0, mpTotal: 0, grandTotal: 0 });
+    const [summary, setSummary] = useState<DailySalesSummary>({ cashTotal: 0, mpTotal: 0, grandTotal: 0 });
     const [loading, setLoading] = useState(true);
     const [pageLoading, setPageLoading] = useState(false);
     const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
@@ -61,8 +46,8 @@ export default function SalesHistoryPage() {
             const dateParam = mode === 'TODAY' ? `date=${dateStr}&` : '';
             
             const [salesRes, summaryRes] = await Promise.all([
-                api.get(`/sales?${dateParam}page=${page}&size=${ITEMS_PER_PAGE}`),
-                api.get(`/sales/summary?${dateParam.replace('&', '')}`)
+                api.get<PageResponse<Sale>>(`/sales?${dateParam}page=${page}&size=${ITEMS_PER_PAGE}`),
+                api.get<DailySalesSummary>(`/sales/summary?${dateParam.replace('&', '')}`)
             ]);
             
             setSales(salesRes.data.content);
