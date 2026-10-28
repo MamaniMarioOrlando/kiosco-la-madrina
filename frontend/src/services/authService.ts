@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import api, { SIGNIN_PATH } from '@/lib/api';
 import type { LoginRequest, LoginResponse } from '@/types/auth';
 
 /**
@@ -8,5 +8,5 @@ import type { LoginRequest, LoginResponse } from '@/types/auth';
  */
 export const authService = {
     login: (credentials: LoginRequest) =>
-        api.post<LoginResponse>('/auth/signin', credentials).then((res) => res.data),
+        api.post<LoginResponse>(SIGNIN_PATH, credentials).then((res) => res.data),
 };
