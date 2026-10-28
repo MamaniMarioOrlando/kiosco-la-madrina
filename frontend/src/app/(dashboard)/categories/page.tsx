@@ -19,11 +19,15 @@ import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Category } from '@/types/category';
 import { categoryService } from '@/services/categoryService';
+import { useApiData } from '@/hooks/useApiData';
 
 
 export default function CategoriesPage() {
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        data: categories,
+        loading,
+        reload: fetchCategories,
+    } = useApiData(categoryService.findAll, [], { errorMessage: 'Error al cargar las categorías' });
 
     // Form state
     const [isAdding, setIsAdding] = useState(false);
@@ -44,18 +48,7 @@ export default function CategoriesPage() {
             const user = JSON.parse(userData);
             setIsAdmin(user.roles?.some((r: string) => r.toLowerCase().includes('admin')));
         }
-        fetchCategories();
     }, []);
-
-    const fetchCategories = async () => {
-        try {
-            setCategories(await categoryService.findAll());
-        } catch (err) {
-            toast.error(apiErrorMessage(err, 'Error al cargar las categorías'));
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault();
