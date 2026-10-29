@@ -86,3 +86,21 @@ export function isAdmin(user: SessionUser | null): boolean {
 export function useCurrentUser(): SessionUser | null {
     return useSyncExternalStore(subscribe, readUser, () => null);
 }
+
+const subscribeToNothing = () => () => {};
+
+/**
+ * Estado de la sesión para decidir qué mostrar. Durante el render del servidor y la hidratación
+ * todavía no se puede leer localStorage, y un usuario null no significa "no hay sesión":
+ * por eso existe 'loading', y quien lo use no redirige al login por error.
+ */
+export type SessionStatus = 'loading' | 'authenticated' | 'anonymous';
+
+export function useSessionStatus(): SessionStatus {
+    // false en el servidor y durante la hidratación; true una vez en el navegador.
+    const isClient = useSyncExternalStore(subscribeToNothing, () => true, () => false);
+    const user = useCurrentUser();
+
+    if (!isClient) return 'loading';
+    return user ? 'authenticated' : 'anonymous';
+}
