@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { userService } from '@/services/userService';
+import { useApiData } from '@/hooks/useApiData';
 import { apiErrorMessage } from '@/lib/errors';
 import { useCurrentUser } from '@/lib/session';
 import { AdminOnly } from '@/components/auth/AdminOnly';
@@ -38,27 +39,17 @@ export default function UsersPage() {
 }
 
 function UsersManager() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        data: users,
+        loading,
+        reload: fetchUsers,
+    } = useApiData(userService.findAll, [], { errorMessage: 'Error al cargar los usuarios' });
 
     const [isAdding, setIsAdding] = useState(false);
     const [form, setForm] = useState(EMPTY_FORM);
     const [submitting, setSubmitting] = useState(false);
     const currentUsername = useCurrentUser()?.username;
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const fetchUsers = async () => {
-        try {
-            setUsers(await userService.findAll());
-        } catch (err) {
-            toast.error(apiErrorMessage(err, 'Error al cargar los usuarios'));
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();

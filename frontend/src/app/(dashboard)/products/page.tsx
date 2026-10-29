@@ -20,16 +20,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { InactiveProducts } from '@/components/products/InactiveProducts';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { Product, ProductRequest } from '@/types/product';
-import type { Category } from '@/types/category';
 import { categoryService } from '@/services/categoryService';
 import { productService } from '@/services/productService';
+import { useApiData } from '@/hooks/useApiData';
 
 
 
 export default function ProductsPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        data: products,
+        loading: loadingProducts,
+        reload: fetchProducts,
+    } = useApiData(productService.findAll, [], { errorMessage: 'Error al cargar los productos' });
+    // Las categorías solo llenan el selector del formulario: se cargan una vez.
+    const { data: categories, loading: loadingCategories } = useApiData(categoryService.findAll, [], {
+        errorMessage: 'Error al cargar las categorías',
+    });
+    // La pantalla espera a las dos listas, como antes con Promise.all.
+    const loading = loadingProducts || loadingCategories;
     const [isAdmin, setIsAdmin] = useState(false);
 
     // Form state
@@ -53,24 +61,7 @@ export default function ProductsPage() {
             const user = JSON.parse(userData);
             setIsAdmin(user.roles?.some((r: string) => r.toLowerCase().includes('admin')));
         }
-        Promise.all([fetchProducts(), fetchCategories()]).finally(() => setLoading(false));
     }, []);
-
-    const fetchProducts = async () => {
-        try {
-            setProducts(await productService.findAll());
-        } catch (err) {
-            toast.error(apiErrorMessage(err, 'Error al cargar los productos'));
-        }
-    };
-
-    const fetchCategories = async () => {
-        try {
-            setCategories(await categoryService.findAll());
-        } catch (err) {
-            toast.error(apiErrorMessage(err, 'Error al cargar las categorías'));
-        }
-    };
 
     const validateForm = () => {
         const newErrors: { [key: string]: string } = {};

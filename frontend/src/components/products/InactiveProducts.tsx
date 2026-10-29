@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { productService } from '@/services/productService';
+import { useApiData } from '@/hooks/useApiData';
 import { apiErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -23,21 +24,13 @@ interface InactiveProductsProps {
  * No se muestra nada si no hay inactivos.
  */
 export function InactiveProducts({ reloadSignal, onReactivated }: InactiveProductsProps) {
-    const [products, setProducts] = useState<Product[]>([]);
+    // reloadSignal como refreshKey: cada vez que el padre lo incrementa, la lista se vuelve a pedir.
+    const { data: products, reload: load } = useApiData(productService.findInactive, [], {
+        errorMessage: 'Error al cargar los productos inactivos',
+        refreshKey: reloadSignal,
+    });
     const [expanded, setExpanded] = useState(false);
     const [reactivatingId, setReactivatingId] = useState<number | null>(null);
-
-    const load = useCallback(async () => {
-        try {
-            setProducts(await productService.findInactive());
-        } catch (err) {
-            toast.error(apiErrorMessage(err, 'Error al cargar los productos inactivos'));
-        }
-    }, []);
-
-    useEffect(() => {
-        load();
-    }, [load, reloadSignal]);
 
     const reactivate = async (product: Product) => {
         setReactivatingId(product.id);
