@@ -10,3 +10,11 @@ export interface User {
     role: Role;
     active: boolean;
 }
+
+/** Alta de un usuario por el admin (CreateUserRequestDTO). */
+export interface CreateUserRequest {
+    username: string;
+    email: string;
+    password: string;
+    role: Role;
+}

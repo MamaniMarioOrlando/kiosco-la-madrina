@@ -14,9 +14,10 @@ import {
     History as HistoryIcon,
     Users
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import api from '@/lib/api';
+import { productService } from '@/services/productService';
+import { useApiData } from '@/hooks/useApiData';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 
 const sidebarItems = [
@@ -34,24 +35,12 @@ export function Sidebar({ className }: { className?: string }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const user = useCurrentUser();
-    const [hasLowStock, setHasLowStock] = useState(false);
-
-    useEffect(() => {
-        const checkLowStock = async () => {
-            try {
-                const response = await api.get<unknown[]>('/products/low-stock');
-                setHasLowStock(response.data.length > 0);
-            } catch (e) {
-                console.error(e);
-            }
-        };
-
-        checkLowStock();
-
-        // Refresh status every 30 seconds
-        const interval = setInterval(checkLowStock, 30000);
-        return () => clearInterval(interval);
-    }, [pathname]);
+    // Chequeo en segundo plano: cada 30 s y al navegar. Sin errorMessage, un fallo no molesta con avisos.
+    const { data: lowStock } = useApiData(productService.findLowStock, [], {
+        refreshMs: 30_000,
+        refreshKey: pathname,
+    });
+    const hasLowStock = lowStock.length > 0;
 
 
     return (

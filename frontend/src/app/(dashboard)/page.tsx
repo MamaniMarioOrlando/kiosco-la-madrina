@@ -3,14 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAxiosError } from 'axios';
-import api from '@/lib/api';
+import { categoryService } from '@/services/categoryService';
+import { productService } from '@/services/productService';
+import { saleService } from '@/services/saleService';
 import { motion } from 'framer-motion';
 import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { todayInKiosk } from '@/lib/time';
 import type { Product } from '@/types/product';
-import type { DailySalesSummary, TopSeller } from '@/types/sale';
+import type { TopSeller } from '@/types/sale';
 
 
 export default function Home() {
@@ -42,11 +44,10 @@ export default function Home() {
         stockQuantity: newTotalStock
       };
 
-      await api.put(`/products/${product.id}`, updatedProduct);
+      await productService.update(product.id, updatedProduct);
 
       // El backend decide qué es stock bajo: si con la reposición dejó de serlo, sale de la lista.
-      const lowStockRes = await api.get<Product[]>('/products/low-stock');
-      setLowStockProducts(lowStockRes.data);
+      setLowStockProducts(await productService.findLowStock());
       
       toast.success(`${product.name} reabastecido (+${editStockValue}). Total: ${newTotalStock}`);
       setEditingProductId(null);
@@ -84,29 +85,22 @@ export default function Home() {
   const fetchDashboardData = async () => {
     try {
       const today = todayInKiosk();
-      const [productsRes, categoriesRes, summaryRes, topSellersRes, lowStockRes] = await Promise.all([
-        api.get('/products'),
-        api.get('/categories'),
-        api.get<DailySalesSummary>(`/sales/summary?date=${today}`),
-        api.get<TopSeller[]>('/sales/top-sellers'),
-        api.get<Product[]>('/products/low-stock')
+      const [products, categories, summary, topSellers, lowStock] = await Promise.all([
+        productService.findAll(),
+        categoryService.findAll(),
+        saleService.getSummary(today),
+        saleService.findTopSellers(),
+        productService.findLowStock()
       ]);
 
-      const products: Product[] = productsRes.data;
-
-      // Calculate Today's Sales
-      const todayTotal = summaryRes.data?.grandTotal || 0;
-
-      // Ya vienen ordenados del más urgente al menos urgente.
-      const lowStock = lowStockRes.data;
 
       setStats({
         productCount: products.length,
-        categoryCount: categoriesRes.data.length,
-        todaySales: todayTotal
+        categoryCount: categories.length,
+        todaySales: summary.grandTotal
       });
       setLowStockProducts(lowStock);
-      setTopSellers(topSellersRes.data || []);
+      setTopSellers(topSellers);
 
       // Notify low stock
       if (lowStock.length > 0) {

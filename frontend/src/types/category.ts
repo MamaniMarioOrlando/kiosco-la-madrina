@@ -5,3 +5,6 @@ export interface Category {
     /** Opcional: null si no se cargó. */
     description: string | null;
 }
+
+/** Lo que se envía al crear o editar: el id lo asigna el backend. */
+export type CategoryRequest = Omit<Category, 'id'>;

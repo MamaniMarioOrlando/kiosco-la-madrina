@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Settings, Shield, LogOut, Camera, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import api from '@/lib/api';
+import { userService } from '@/services/userService';
 import { cn } from '@/lib/utils';
 import { clearSession, updateSessionUser, useCurrentUser } from '@/lib/session';
 
@@ -80,9 +80,7 @@ export default function SettingsPage() {
             setIsUploading(true);
             const base64Image = await compressImage(file);
             
-            await api.patch('/users/me/avatar', {
-                avatarUrl: base64Image
-            });
+            await userService.updateMyAvatar(base64Image);
 
             // Notifica a todos los componentes suscritos (p. ej. el menú de usuario): sin recargar la página.
             updateSessionUser({ avatarUrl: base64Image });

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -20,15 +19,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { InactiveProducts } from '@/components/products/InactiveProducts';
 import { cn, formatCurrency } from '@/lib/utils';
-import type { Product } from '@/types/product';
-import type { Category } from '@/types/category';
+import type { Product, ProductRequest } from '@/types/product';
+import { categoryService } from '@/services/categoryService';
+import { productService } from '@/services/productService';
+import { useApiData } from '@/hooks/useApiData';
 
 
 
 export default function ProductsPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        data: products,
+        loading: loadingProducts,
+        reload: fetchProducts,
+    } = useApiData(productService.findAll, [], { errorMessage: 'Error al cargar los productos' });
+    // Las categorías solo llenan el selector del formulario: se cargan una vez.
+    const { data: categories, loading: loadingCategories } = useApiData(categoryService.findAll, [], {
+        errorMessage: 'Error al cargar las categorías',
+    });
+    // La pantalla espera a las dos listas, como antes con Promise.all.
+    const loading = loadingProducts || loadingCategories;
     const [isAdmin, setIsAdmin] = useState(false);
 
     // Form state
@@ -52,26 +61,7 @@ export default function ProductsPage() {
             const user = JSON.parse(userData);
             setIsAdmin(user.roles?.some((r: string) => r.toLowerCase().includes('admin')));
         }
-        Promise.all([fetchProducts(), fetchCategories()]).finally(() => setLoading(false));
     }, []);
-
-    const fetchProducts = async () => {
-        try {
-            const response = await api.get('/products');
-            setProducts(response.data);
-        } catch (err) {
-            toast.error(apiErrorMessage(err, 'Error al cargar los productos'));
-        }
-    };
-
-    const fetchCategories = async () => {
-        try {
-            const response = await api.get('/categories');
-            setCategories(response.data);
-        } catch (err) {
-            toast.error(apiErrorMessage(err, 'Error al cargar las categorías'));
-        }
-    };
 
     const validateForm = () => {
         const newErrors: { [key: string]: string } = {};
@@ -92,17 +82,18 @@ export default function ProductsPage() {
         if (!validateForm()) return;
         setSubmitting(true);
         try {
-            const payload = {
-                ...formData,
+            const payload: ProductRequest = {
+                barcode: formData.barcode,
+                name: formData.name,
                 price: parseFloat(formData.price),
                 stockQuantity: parseInt(formData.stockQuantity),
-                categoryId: parseInt(formData.categoryId)
+                categoryId: formData.categoryId ? parseInt(formData.categoryId) : null
             };
 
             if (editingId) {
-                await api.put(`/products/${editingId}`, payload);
+                await productService.update(editingId, payload);
             } else {
-                await api.post('/products', payload);
+                await productService.create(payload);
             }
 
             setIsAdding(false);
@@ -136,7 +127,7 @@ export default function ProductsPage() {
     const handleDeactivate = async (product: Product) => {
         if (!confirm(`¿Desactivar "${product.name}"? Va a dejar de aparecer en ventas. Podés reactivarlo más tarde.`)) return;
         try {
-            await api.delete(`/products/${product.id}`);
+            await productService.remove(product.id);
             toast.success(`"${product.name}" desactivado`);
             fetchProducts();
             setInactiveReloadSignal((n) => n + 1);
