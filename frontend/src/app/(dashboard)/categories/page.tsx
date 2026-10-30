@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { apiErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { Category } from '@/types/category';
 import { categoryService } from '@/services/categoryService';
 import { useApiData } from '@/hooks/useApiData';
+import { isAdmin, useCurrentUser } from '@/lib/session';
 
 
 export default function CategoriesPage() {
@@ -28,6 +29,8 @@ export default function CategoriesPage() {
         loading,
         reload: fetchCategories,
     } = useApiData(categoryService.findAll, [], { errorMessage: 'Error al cargar las categorías' });
+    // Solo cambia qué botones se ven: el backend rechaza igual con 403 a quien no es admin.
+    const canManage = isAdmin(useCurrentUser());
 
     // Form state
     const [isAdding, setIsAdding] = useState(false);
@@ -39,16 +42,6 @@ export default function CategoriesPage() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editName, setEditName] = useState('');
     const [editDesc, setEditDesc] = useState('');
-
-    const [isAdmin, setIsAdmin] = useState(false);
-
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            const user = JSON.parse(userData);
-            setIsAdmin(user.roles?.some((r: string) => r.toLowerCase().includes('admin')));
-        }
-    }, []);
 
     const handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -113,14 +106,14 @@ export default function CategoriesPage() {
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Categorías</h2>
                     <p className="text-slate-500 dark:text-slate-400">Gestiona las categorías de tus productos.</p>
                 </div>
-                {isAdmin && !isAdding && (
+                {canManage && !isAdding && (
                     <Button onClick={() => setIsAdding(true)} className="bg-orange-600 hover:bg-orange-700">
                         <Plus className="mr-2 h-4 w-4" /> Nueva Categoría
                     </Button>
                 )}
             </div>
 
-            {isAdmin && isAdding && (
+            {canManage && isAdding && (
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -164,13 +157,13 @@ export default function CategoriesPage() {
                         <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800">
                             <TableHead className="dark:text-slate-400">Nombre</TableHead>
                             <TableHead className="dark:text-slate-400">Descripción</TableHead>
-                            {isAdmin && <TableHead className="w-16 dark:text-slate-400">Acciones</TableHead>}
+                            {canManage && <TableHead className="w-16 dark:text-slate-400">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {categories.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={isAdmin ? 3 : 2} className="text-center py-10 text-slate-500">
+                                <TableCell colSpan={canManage ? 3 : 2} className="text-center py-10 text-slate-500">
                                     No hay categorías registradas.
                                 </TableCell>
                             </TableRow>
@@ -191,7 +184,7 @@ export default function CategoriesPage() {
                                             c.description || '-'
                                         )}
                                     </TableCell>
-                                    {isAdmin && (
+                                    {canManage && (
                                         <TableCell>
                                             <div className="flex gap-2">
                                                 {editingId === c.id ? (

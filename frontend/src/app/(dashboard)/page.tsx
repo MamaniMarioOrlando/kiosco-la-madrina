@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { isAxiosError } from 'axios';
 import { categoryService } from '@/services/categoryService';
 import { productService } from '@/services/productService';
@@ -11,12 +10,12 @@ import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X 
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { todayInKiosk } from '@/lib/time';
+import { isAdmin, useCurrentUser } from '@/lib/session';
 import type { Product } from '@/types/product';
 import type { TopSeller } from '@/types/sale';
 
 
 export default function Home() {
-  const router = useRouter();
   const [stats, setStats] = useState({
     todaySales: 0,
     productCount: 0,
@@ -25,10 +24,11 @@ export default function Home() {
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
   const [topSellers, setTopSellers] = useState<TopSeller[]>([]);
   const [loading, setLoading] = useState(true);
+  // Reponer stock desde las alertas es de admin; el backend lo exige con 403 igual.
+  const canRestock = isAdmin(useCurrentUser());
   
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editStockValue, setEditStockValue] = useState<number>(0);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleUpdateStock = async (product: Product) => {
     try {
@@ -62,25 +62,10 @@ export default function Home() {
     }
   };
 
+  // AuthGuard ya garantiza que hay sesión: acá solo queda cargar los datos.
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    } else {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        try {
-          const parsed = JSON.parse(userData);
-          if (parsed.roles && parsed.roles.some((r: string) => r.toLowerCase().includes('admin'))) {
-            setIsAdmin(true);
-          }
-        } catch {
-          // Usuario guardado ilegible: se lo trata como no admin.
-        }
-      }
-      fetchDashboardData();
-    }
-  }, [router]);
+    fetchDashboardData();
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -255,15 +240,15 @@ export default function Home() {
                     <div 
                       className={cn(
                         "flex items-center gap-4 transition-opacity bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border dark:border-slate-700 shadow-sm",
-                        isAdmin ? "cursor-pointer hover:opacity-80 hover:border-slate-300" : "cursor-default opacity-90"
+                        canRestock ? "cursor-pointer hover:opacity-80 hover:border-slate-300" : "cursor-default opacity-90"
                       )}
                       onClick={() => {
-                        if (isAdmin) {
+                        if (canRestock) {
                           setEditingProductId(p.id);
                           setEditStockValue(0);
                         }
                       }}
-                      title={isAdmin ? "Haz clic para actualizar el stock rápidamente" : "Atención: Stock Bajo"}
+                      title={canRestock ? "Haz clic para actualizar el stock rápidamente" : "Atención: Stock Bajo"}
                     >
                       <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Quedan:</span>
                       <span className={cn(
