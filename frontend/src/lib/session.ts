@@ -46,9 +46,13 @@ function subscribe(onChange: () => void) {
     window.addEventListener(CHANGE_EVENT, onChange);
     // 'storage' sincroniza otras pestañas del mismo navegador (p. ej. un logout).
     window.addEventListener('storage', onChange);
+    // 'pageshow' cubre el bfcache: con "atrás" el navegador puede devolver una página congelada,
+    // que no recibió los eventos de arriba mientras tanto. Al mostrarla se vuelve a leer la sesión.
+    window.addEventListener('pageshow', onChange);
     return () => {
         window.removeEventListener(CHANGE_EVENT, onChange);
         window.removeEventListener('storage', onChange);
+        window.removeEventListener('pageshow', onChange);
     };
 }
 
