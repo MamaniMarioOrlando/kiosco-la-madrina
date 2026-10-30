@@ -54,7 +54,8 @@ export default function LoginPage() {
                 avatarUrl: session.avatarUrl,
             });
 
-            router.push('/');
+            // replace: el login no queda en el historial, así "atrás" no vuelve a él.
+            router.replace('/');
         } catch (err) {
             // Sin console.error: 401 y 429 son casos esperados, no bugs.
             setError(loginErrorMessage(err));

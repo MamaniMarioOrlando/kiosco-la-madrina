@@ -27,7 +27,7 @@ export function UserProfile() {
     const handleLogout = () => {
         setIsOpen(false);
         clearSession();
-        router.push('/login');
+        router.replace('/login');
     };
 
     // Mientras se hidrata no sabemos quién es: un placeholder neutro evita mostrar datos falsos.
