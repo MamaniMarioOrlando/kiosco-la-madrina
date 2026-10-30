@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { apiErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import type { Product, ProductRequest } from '@/types/product';
 import { categoryService } from '@/services/categoryService';
 import { productService } from '@/services/productService';
 import { useApiData } from '@/hooks/useApiData';
+import { isAdmin, useCurrentUser } from '@/lib/session';
 
 
 
@@ -38,7 +39,8 @@ export default function ProductsPage() {
     });
     // La pantalla espera a las dos listas, como antes con Promise.all.
     const loading = loadingProducts || loadingCategories;
-    const [isAdmin, setIsAdmin] = useState(false);
+    // Solo cambia qué botones se ven: el backend rechaza igual con 403 a quien no es admin.
+    const canManage = isAdmin(useCurrentUser());
 
     // Form state
     const [isAdding, setIsAdding] = useState(false);
@@ -54,14 +56,6 @@ export default function ProductsPage() {
     const [submitting, setSubmitting] = useState(false);
     // Se incrementa al desactivar un producto para que la sección de inactivos se recargue.
     const [inactiveReloadSignal, setInactiveReloadSignal] = useState(0);
-
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            const user = JSON.parse(userData);
-            setIsAdmin(user.roles?.some((r: string) => r.toLowerCase().includes('admin')));
-        }
-    }, []);
 
     const validateForm = () => {
         const newErrors: { [key: string]: string } = {};
@@ -151,7 +145,7 @@ export default function ProductsPage() {
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Productos</h2>
                     <p className="text-slate-500 dark:text-slate-400">Administra el inventario y precios.</p>
                 </div>
-                {isAdmin && (
+                {canManage && (
                     <Button
                         onClick={() => {
                             if (isAdding) {
@@ -171,7 +165,7 @@ export default function ProductsPage() {
             </div>
 
             <AnimatePresence>
-                {isAdmin && isAdding && (
+                {canManage && isAdding && (
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
@@ -297,13 +291,13 @@ export default function ProductsPage() {
                             <TableHead className="dark:text-slate-400">Categoría</TableHead>
                             <TableHead className="dark:text-slate-400">Precio</TableHead>
                             <TableHead className="dark:text-slate-400">Stock</TableHead>
-                            {isAdmin && <TableHead className="w-32 dark:text-slate-400">Acciones</TableHead>}
+                            {canManage && <TableHead className="w-32 dark:text-slate-400">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {products.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={isAdmin ? 5 : 4} className="text-center py-10 text-slate-500">
+                                <TableCell colSpan={canManage ? 5 : 4} className="text-center py-10 text-slate-500">
                                     No hay productos en inventario.
                                 </TableCell>
                             </TableRow>
@@ -329,7 +323,7 @@ export default function ProductsPage() {
                                             {p.stockQuantity} unid.
                                         </span>
                                     </TableCell>
-                                    {isAdmin && (
+                                    {canManage && (
                                         <TableCell>
                                             <div className="flex gap-1">
                                                 <Tooltip>
@@ -368,7 +362,7 @@ export default function ProductsPage() {
                 </Table>
             </div>
 
-            {isAdmin && (
+            {canManage && (
                 <InactiveProducts reloadSignal={inactiveReloadSignal} onReactivated={fetchProducts} />
             )}
         </div>

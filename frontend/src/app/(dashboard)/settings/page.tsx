@@ -19,7 +19,7 @@ export default function SettingsPage() {
 
     const handleLogout = () => {
         clearSession();
-        router.push('/login');
+        router.replace('/login');
     };
 
     const handleAvatarClick = () => {
