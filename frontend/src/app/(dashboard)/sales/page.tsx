@@ -14,6 +14,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from '@/types/product';
 
 
+// Con un id fijo, sonner reemplaza el aviso en vez de apilar uno por cada clic en "+".
+const STOCK_LIMIT_TOAST = 'stock-limit';
+
 interface CartItem extends Product {
     quantity: number;
 }
@@ -51,7 +54,9 @@ export default function SalesPage() {
     const addToCart = (product: Product) => {
         const quantityInCart = cart.find(item => item.id === product.id)?.quantity ?? 0;
         if (quantityInCart >= product.stockQuantity) {
-            toast.error(quantityInCart === 0 ? 'Producto sin stock disponible.' : 'No hay más stock disponible.');
+            toast.error(quantityInCart === 0 ? 'Producto sin stock disponible.' : 'No hay más stock disponible.', {
+                id: STOCK_LIMIT_TOAST,
+            });
             return;
         }
 
@@ -69,7 +74,7 @@ export default function SalesPage() {
         const newQty = item.quantity + delta;
         if (newQty <= 0) return;
         if (newQty > item.stockQuantity) {
-            toast.error('Stock insuficiente.');
+            toast.error('Stock insuficiente.', { id: STOCK_LIMIT_TOAST });
             return;
         }
 
