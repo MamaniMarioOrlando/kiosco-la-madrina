@@ -24,6 +24,7 @@ import { categoryService } from '@/services/categoryService';
 import { productService } from '@/services/productService';
 import { useApiData } from '@/hooks/useApiData';
 import { isAdmin, useCurrentUser } from '@/lib/session';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 
 
@@ -140,11 +141,7 @@ export default function ProductsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Productos</h2>
-                    <p className="text-slate-500 dark:text-slate-400">Administra el inventario y precios.</p>
-                </div>
+            <PageHeader title="Productos" description="Administra el inventario y precios.">
                 {canManage && (
                     <Button
                         onClick={() => {
@@ -162,7 +159,7 @@ export default function ProductsPage() {
                         {isAdding && editingId ? 'Cancelar Edición' : (isAdding ? 'Cancelar' : <><Plus className="mr-2 h-4 w-4" /> Nuevo Producto</>)}
                     </Button>
                 )}
-            </div>
+            </PageHeader>
 
             <AnimatePresence>
                 {canManage && isAdding && (

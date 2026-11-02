@@ -21,6 +21,7 @@ import type { Category } from '@/types/category';
 import { categoryService } from '@/services/categoryService';
 import { useApiData } from '@/hooks/useApiData';
 import { isAdmin, useCurrentUser } from '@/lib/session';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 
 export default function CategoriesPage() {
@@ -101,17 +102,13 @@ export default function CategoriesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Categorías</h2>
-                    <p className="text-slate-500 dark:text-slate-400">Gestiona las categorías de tus productos.</p>
-                </div>
+            <PageHeader title="Categorías" description="Gestiona las categorías de tus productos.">
                 {canManage && !isAdding && (
                     <Button onClick={() => setIsAdding(true)} className="bg-orange-600 hover:bg-orange-700">
                         <Plus className="mr-2 h-4 w-4" /> Nueva Categoría
                     </Button>
                 )}
-            </div>
+            </PageHeader>
 
             {canManage && isAdding && (
                 <motion.div

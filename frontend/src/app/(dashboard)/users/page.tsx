@@ -22,6 +22,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CreateUserRequest, Role, User } from '@/types/user';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 const EMPTY_FORM: CreateUserRequest = { username: '', email: '', password: '', role: 'EMPLOYEE' };
 
@@ -90,17 +91,13 @@ function UsersManager() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Usuarios</h2>
-                    <p className="text-slate-500 dark:text-slate-400">Da de alta empleados y administra el acceso al sistema.</p>
-                </div>
+            <PageHeader title="Usuarios" description="Da de alta empleados y administra el acceso al sistema.">
                 {!isAdding && (
                     <Button onClick={() => setIsAdding(true)} className="bg-orange-600 hover:bg-orange-700">
                         <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
                     </Button>
                 )}
-            </div>
+            </PageHeader>
 
             {isAdding && (
                 <motion.div

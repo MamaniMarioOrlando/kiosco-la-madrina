@@ -18,6 +18,7 @@ import { formatKioskDateTime, todayInKiosk } from '@/lib/time';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 import { VoidSale } from '@/components/sales/VoidSale';
 import type { DailySalesSummary, Sale } from '@/types/sale';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 
 
@@ -72,13 +73,7 @@ export default function SalesHistoryPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <History className="h-6 w-6 text-orange-600" /> Historial de Ventas
-                    </h2>
-                    <p className="text-slate-500">Cuadre de caja y revisión de transacciones.</p>
-                </div>
+            <PageHeader title="Historial de Ventas" description="Cuadre de caja y revisión de transacciones." icon={History}>
                 <div className="flex gap-2">
                     <Button 
                         variant={viewMode === 'TODAY' ? 'default' : 'outline'} 
@@ -95,7 +90,7 @@ export default function SalesHistoryPage() {
                         Histórico Completo
                     </Button>
                 </div>
-            </div>
+            </PageHeader>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl shadow-sm flex flex-col items-center justify-center text-center">
