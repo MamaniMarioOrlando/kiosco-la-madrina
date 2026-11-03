@@ -17,7 +17,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2, UserCheck, UserX } from 'lucide-react';
+import { Plus, Loader2, UserCheck, UserX, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -91,7 +91,7 @@ function UsersManager() {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="Usuarios" description="Da de alta empleados y administra el acceso al sistema.">
+            <PageHeader title="Usuarios" description="Da de alta empleados y administra el acceso al sistema." icon={Users}>
                 {!isAdding && (
                     <Button onClick={() => setIsAdding(true)} className="bg-orange-600 hover:bg-orange-700">
                         <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario

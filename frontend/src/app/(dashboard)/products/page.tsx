@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2, Barcode, Archive, Pencil } from 'lucide-react';
+import { Plus, Loader2, Barcode, Archive, Pencil, ShoppingBasket } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { InactiveProducts } from '@/components/products/InactiveProducts';
@@ -141,7 +141,7 @@ export default function ProductsPage() {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="Productos" description="Administra el inventario y precios.">
+            <PageHeader title="Productos" description="Administra el inventario y precios." icon={ShoppingBasket}>
                 {canManage && (
                     <Button
                         onClick={() => {

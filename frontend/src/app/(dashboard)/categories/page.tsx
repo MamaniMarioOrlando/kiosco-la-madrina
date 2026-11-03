@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Plus, Loader2, Pencil, Trash2, X, Check, Tags } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Category } from '@/types/category';
@@ -102,7 +102,7 @@ export default function CategoriesPage() {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="Categorías" description="Gestiona las categorías de tus productos.">
+            <PageHeader title="Categorías" description="Gestiona las categorías de tus productos." icon={Tags}>
                 {canManage && !isAdding && (
                     <Button onClick={() => setIsAdding(true)} className="bg-orange-600 hover:bg-orange-700">
                         <Plus className="mr-2 h-4 w-4" /> Nueva Categoría
