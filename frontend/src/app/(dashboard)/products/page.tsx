@@ -319,7 +319,7 @@ export default function ProductsPage() {
                                         {formatCurrency(p.price)}
                                     </TableCell>
                                     <TableCell>
-                                        <span className={p.stockQuantity <= 5 ? "text-red-600 dark:text-red-400 font-bold" : "text-slate-600 dark:text-slate-400"}>
+                                        <span className={p.stockLevel === 'OK' ? "text-slate-600 dark:text-slate-400" : "text-red-600 dark:text-red-400 font-bold"}>
                                             {p.stockQuantity} unid.
                                         </span>
                                     </TableCell>
