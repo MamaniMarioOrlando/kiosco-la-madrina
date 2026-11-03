@@ -1,5 +1,6 @@
 package devMario.example.kioscoLaMadrina.dto;
 
+import devMario.example.kioscoLaMadrina.model.StockLevel;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,5 +13,6 @@ public record ProductDTO(
                 @NotNull @Min(value = 0, message = "El stock no puede ser negativo") @Max(value = 100000, message = "El stock no puede superar las 100.000 unidades") Integer stockQuantity,
                 Long categoryId,
                 String categoryName,
-                @Schema(accessMode = Schema.AccessMode.READ_ONLY) Boolean active) {
+                @Schema(accessMode = Schema.AccessMode.READ_ONLY) Boolean active,
+                @Schema(accessMode = Schema.AccessMode.READ_ONLY) StockLevel stockLevel) {
 }

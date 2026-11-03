@@ -19,8 +19,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Decisión de negocio: hay que reponer un producto cuando le quedan menos de 5 unidades. El umbral vive solo
- * en el backend (antes cada pantalla lo repetía) y los productos desactivados no se reponen.
+ * Decisión de negocio: hay que reponer un producto cuando le quedan menos de 5 unidades, y está por agotarse con
+ * menos de 3. Los umbrales viven solo en el backend (StockLevel): cada producto viaja con su nivel ya calculado
+ * y el frontend solo lo pinta. Los productos desactivados no se reponen.
  */
 @ActiveProfiles("test")
 class LowStockIntegrationTest extends AbstractIntegrationTest {
@@ -54,8 +55,29 @@ class LowStockIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "empleado", authorities = "EMPLOYEE")
+    void products_CarryTheirStockLevel_SoTheFrontendDoesNotRepeatTheThresholds() throws Exception {
+        Product almostOut = product(2, true);
+        Product running = product(3, true);
+        Product enough = product(5, true);
+
+        String json = mockMvc.perform(get("/api/products"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(stockLevelOf(json, almostOut)).isEqualTo("CRITICAL");
+        assertThat(stockLevelOf(json, running)).isEqualTo("LOW");
+        assertThat(stockLevelOf(json, enough)).isEqualTo("OK");
+    }
+
+    @Test
     void lowStock_RequiresLogin() throws Exception {
         mockMvc.perform(get("/api/products/low-stock")).andExpect(status().isUnauthorized());
+    }
+
+    private static String stockLevelOf(String json, Product product) {
+        List<String> levels = JsonPath.read(json, "$[?(@.id == " + product.getId() + ")].stockLevel");
+        return levels.get(0);
     }
 
     private Product product(int stock, boolean active) {

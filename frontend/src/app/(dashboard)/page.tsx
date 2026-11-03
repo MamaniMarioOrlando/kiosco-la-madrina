@@ -29,6 +29,8 @@ export default function Home() {
   
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editStockValue, setEditStockValue] = useState<number>(0);
+  // Si algo está por agotarse, toda la tarjeta de reposición se vuelve llamativa.
+  const hasCriticalStock = lowStockProducts.some(p => p.stockLevel === 'CRITICAL');
 
   const handleUpdateStock = async (product: Product) => {
     try {
@@ -164,7 +166,7 @@ export default function Home() {
         {/* Low Stock Alerts */}
         <motion.div
           initial={{ x: -20, opacity: 0 }}
-          animate={lowStockProducts.some(p => p.stockQuantity < 3) ? {
+          animate={hasCriticalStock ? {
             x: 0,
             opacity: 1,
             boxShadow: ["0px 0px 0px rgba(239, 68, 68, 0)", "0px 0px 20px rgba(239, 68, 68, 0.2)", "0px 0px 0px rgba(239, 68, 68, 0)"],
@@ -172,20 +174,20 @@ export default function Home() {
             x: 0,
             opacity: 1
           }}
-          transition={lowStockProducts.some(p => p.stockQuantity < 3) ? {
+          transition={hasCriticalStock ? {
             x: { duration: 0.5 },
             opacity: { duration: 0.5 },
             boxShadow: { duration: 2, repeat: Infinity },
           } : { duration: 0.5 }}
           className={cn(
             "bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border",
-            lowStockProducts.some(p => p.stockQuantity < 3) ? "border-red-200 dark:border-red-800" : "border-slate-200 dark:border-slate-800"
+            hasCriticalStock ? "border-red-200 dark:border-red-800" : "border-slate-200 dark:border-slate-800"
           )}
         >        <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <div className={cn(
                 "p-2 rounded-lg",
-                lowStockProducts.some(p => p.stockQuantity < 3) ? "bg-red-100 text-red-600 animate-pulse" : "bg-orange-100 text-orange-600"
+                hasCriticalStock ? "bg-red-100 text-red-600 animate-pulse" : "bg-orange-100 text-orange-600"
               )}>
                 <AlertTriangle size={20} />
               </div>
@@ -203,13 +205,13 @@ export default function Home() {
               {lowStockProducts.map(p => (
                 <div key={p.id} className={cn(
                   "flex items-center justify-between p-3 rounded-xl border transition-all",
-                  p.stockQuantity < 3
+                  p.stockLevel === 'CRITICAL'
                     ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 shadow-sm"
                     : "bg-orange-50/50 dark:bg-orange-950/10 border-orange-100 dark:border-orange-900/20",
                   editingProductId === p.id && "ring-2 ring-blue-500 border-blue-500 scale-[1.02]"
                 )}>
                   <div className="flex items-center gap-3">
-                    {p.stockQuantity < 3 && editingProductId !== p.id && <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />}
+                    {p.stockLevel === 'CRITICAL' && editingProductId !== p.id && <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />}
                     <div className="font-bold text-slate-800 dark:text-slate-200">{p.name}</div>
                   </div>
                   
@@ -253,7 +255,7 @@ export default function Home() {
                       <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Quedan:</span>
                       <span className={cn(
                         "px-2 py-0.5 rounded font-black text-sm",
-                        p.stockQuantity < 3 ? "bg-red-600 text-white" : "bg-orange-500 text-white"
+                        p.stockLevel === 'CRITICAL' ? "bg-red-600 text-white" : "bg-orange-500 text-white"
                       )}>{p.stockQuantity}</span>
                     </div>
                   )}
