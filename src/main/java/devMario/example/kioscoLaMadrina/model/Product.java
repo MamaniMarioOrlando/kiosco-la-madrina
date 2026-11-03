@@ -43,4 +43,9 @@ public class Product {
     public void activate() {
         this.active = true;
     }
+
+    /** Calculado a partir del stock, no se guarda: así nunca puede quedar desactualizado. */
+    public StockLevel getStockLevel() {
+        return StockLevel.of(stockQuantity);
+    }
 }

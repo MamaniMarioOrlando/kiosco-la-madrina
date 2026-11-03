@@ -1,6 +1,7 @@
 package devMario.example.kioscoLaMadrina.controller;
 
 import devMario.example.kioscoLaMadrina.dto.ProductDTO;
+import devMario.example.kioscoLaMadrina.model.StockLevel;
 import devMario.example.kioscoLaMadrina.service.ProductService;
 import org.junit.jupiter.api.Test;
 import devMario.example.kioscoLaMadrina.security.SecurityErrorResponder;
@@ -45,7 +46,7 @@ public class ProductControllerTest {
     void testGetAllProducts_ReturnsListAndHttp200() throws Exception {
         // 1. ARRANGE
         ProductDTO fakeProduct = new ProductDTO(1L, "12345", "Coca-Cola",
-                new BigDecimal("1500"), 10, 1L, "Bebidas", true);
+                new BigDecimal("1500"), 10, 1L, "Bebidas", true, StockLevel.OK);
         when(productService.findAll()).thenReturn(Arrays.asList(fakeProduct));
 
         // 2 & 3. ACT & ASSERT
@@ -75,7 +76,8 @@ public class ProductControllerTest {
                 -5, // STOCK INVIABLE (Genera Error)
                 1L, 
                 "Golosinas",
-                null // active: solo lectura, el cliente no lo envía
+                null, // active: solo lectura, el cliente no lo envía
+                null  // stockLevel: también lo calcula el backend
         );
 
         // Convertimos el objeto Java a un String JSON usando nuestra herramienta ObjectMapper
@@ -97,7 +99,7 @@ public class ProductControllerTest {
     @Test
     void createProduct_WithZeroPrice_Returns400WithAClearMessage() throws Exception {
         // La base exige price > 0: si el DTO aceptara $0, el usuario recibiría un 500 en vez de este mensaje.
-        ProductDTO free = new ProductDTO(null, "779100", "Caramelo", BigDecimal.ZERO, 10, null, null, null);
+        ProductDTO free = new ProductDTO(null, "779100", "Caramelo", BigDecimal.ZERO, 10, null, null, null, null);
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
