@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { apiErrorMessage } from '@/lib/errors';
+import { fromCents, toCents } from '@/lib/money';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode, Handshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from '@/types/product';
@@ -85,8 +86,12 @@ export default function SalesPage() {
         setCart(prev => prev.filter(item => item.id !== id));
     };
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const change = parseFloat(amountPaid) > 0 ? parseFloat(amountPaid) - total : 0;
+    // En centavos: con decimales de punto flotante, pagar justo $300,03 daba un vuelto de -0,00000000000005.
+    const totalCents = cart.reduce((sum, item) => sum + toCents(item.price) * item.quantity, 0);
+    const total = fromCents(totalCents);
+    const paid = parseFloat(amountPaid);
+    const hasPaid = paid > 0; // false también si el campo está vacío (NaN > 0 es false)
+    const change = hasPaid ? fromCents(toCents(paid) - totalCents) : 0;
 
     const buildSalePayload = (method: PaymentMethod): SaleRequest => ({
         items: cart.map(item => ({
@@ -254,7 +259,7 @@ export default function SalesPage() {
                                 />
                             </div>
 
-                            {parseFloat(amountPaid) > 0 && (
+                            {hasPaid && (
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
@@ -286,7 +291,7 @@ export default function SalesPage() {
                         <Button
                             onClick={() => checkout('CASH')}
                             className="w-full h-14 flex flex-col items-center justify-center gap-1 bg-orange-600 hover:bg-orange-700 shadow-sm border border-orange-700/50"
-                            disabled={cart.length === 0 || submitting || (parseFloat(amountPaid) > 0 && change < 0)}
+                            disabled={cart.length === 0 || submitting || (hasPaid && change < 0)}
                         >
                             {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : (
                                 <>
