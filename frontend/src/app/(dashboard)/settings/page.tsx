@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { userService } from '@/services/userService';
 import { cn } from '@/lib/utils';
 import { clearSession, updateSessionUser, useCurrentUser } from '@/lib/session';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -100,10 +101,7 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-2">
-                <Settings className="h-6 w-6 text-slate-600" />
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Configuración</h2>
-            </div>
+            <PageHeader title="Configuración" icon={Settings} />
 
             <motion.div
                 initial={{ opacity: 0, y: 10 }}

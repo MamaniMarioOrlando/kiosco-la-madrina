@@ -8,10 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
+import { apiErrorMessage } from '@/lib/errors';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode, Handshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from '@/types/product';
 
+
+// Con un id fijo, sonner reemplaza el aviso en vez de apilar uno por cada clic en "+".
+const STOCK_LIMIT_TOAST = 'stock-limit';
 
 interface CartItem extends Product {
     quantity: number;
@@ -45,41 +49,36 @@ export default function SalesPage() {
         p.barcode.includes(searchTerm)
     ).slice(0, 5);
 
+    // Las validaciones van antes de setCart: la función que se le pasa tiene que ser pura, y
+    // React puede ejecutarla dos veces (Strict Mode), lo que duplicaría cualquier aviso adentro.
     const addToCart = (product: Product) => {
-        if (product.stockQuantity <= 0) {
-            alert('Producto sin stock disponible.');
+        const quantityInCart = cart.find(item => item.id === product.id)?.quantity ?? 0;
+        if (quantityInCart >= product.stockQuantity) {
+            toast.error(quantityInCart === 0 ? 'Producto sin stock disponible.' : 'No hay más stock disponible.', {
+                id: STOCK_LIMIT_TOAST,
+            });
             return;
         }
 
-        setCart(prev => {
-            const existing = prev.find(item => item.id === product.id);
-            if (existing) {
-                if (existing.quantity >= product.stockQuantity) {
-                    alert('No hay más stock disponible.');
-                    return prev;
-                }
-                return prev.map(item =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-                );
-            }
-            return [...prev, { ...product, quantity: 1 }];
-        });
+        setCart(prev => quantityInCart === 0
+            ? [...prev, { ...product, quantity: 1 }]
+            : prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
+        );
         setSearchTerm('');
     };
 
     const updateQuantity = (id: number, delta: number) => {
-        setCart(prev => prev.map(item => {
-            if (item.id === id) {
-                const newQty = item.quantity + delta;
-                if (newQty <= 0) return item;
-                if (newQty > item.stockQuantity) {
-                    alert('Stock insuficiente.');
-                    return item;
-                }
-                return { ...item, quantity: newQty };
-            }
-            return item;
-        }));
+        const item = cart.find(i => i.id === id);
+        if (!item) return;
+
+        const newQty = item.quantity + delta;
+        if (newQty <= 0) return;
+        if (newQty > item.stockQuantity) {
+            toast.error('Stock insuficiente.', { id: STOCK_LIMIT_TOAST });
+            return;
+        }
+
+        setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: newQty } : i));
     };
 
     const removeFromCart = (id: number) => {
@@ -121,29 +120,15 @@ export default function SalesPage() {
         setTimeout(() => setSaleSuccess(false), 3000);
     };
 
-    const handleCheckoutCash = async () => {
+    const checkout = async (method: PaymentMethod) => {
         if (cart.length === 0) return;
         setSubmitting(true);
         try {
-            await saleService.create(buildSalePayload('CASH'));
+            await saleService.create(buildSalePayload(method));
             await refreshStockAndCleanCart();
         } catch (err) {
-            console.error(err);
-            alert('Error al procesar la venta. Revisa el stock o tu conexión.');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleMercadoPagoCheckout = async () => {
-        if (cart.length === 0) return;
-        setSubmitting(true);
-        try {
-            await saleService.create(buildSalePayload('MERCADO_PAGO'));
-            await refreshStockAndCleanCart();
-        } catch (err) {
-            console.error(err);
-            alert('Error al registrar la venta con Mercado Pago manual.');
+            // El backend explica el 409 ("Stock insuficiente para Coca-Cola: pediste 3, quedan 1").
+            toast.error(apiErrorMessage(err, 'No se pudo registrar la venta. Revisá tu conexión.'));
         } finally {
             setSubmitting(false);
         }
@@ -299,7 +284,7 @@ export default function SalesPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                         <Button
-                            onClick={handleCheckoutCash}
+                            onClick={() => checkout('CASH')}
                             className="w-full h-14 flex flex-col items-center justify-center gap-1 bg-orange-600 hover:bg-orange-700 shadow-sm border border-orange-700/50"
                             disabled={cart.length === 0 || submitting || (parseFloat(amountPaid) > 0 && change < 0)}
                         >
@@ -312,7 +297,7 @@ export default function SalesPage() {
                         </Button>
 
                         <Button
-                            onClick={handleMercadoPagoCheckout}
+                            onClick={() => checkout('MERCADO_PAGO')}
                             className="w-full h-14 flex flex-col items-center justify-center gap-1 bg-[#009EE3] hover:bg-[#008CC9] shadow-sm border border-[#009EE3]/50"
                             disabled={cart.length === 0 || submitting}
                         >
