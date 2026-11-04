@@ -5,10 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Se crea una sola vez: armar un Intl.NumberFormat es caro y formatCurrency se llama en cada fila.
+const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 2,
-  }).format(amount);
+  return pesos.format(amount);
 }
