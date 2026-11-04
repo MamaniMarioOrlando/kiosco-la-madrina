@@ -10,6 +10,7 @@ import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { apiErrorMessage } from '@/lib/errors';
 import { fromCents, toCents } from '@/lib/money';
+import { notifyLowStock } from '@/lib/notifications';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode, Handshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from '@/types/product';
@@ -113,14 +114,7 @@ export default function SalesPage() {
         ]);
         setAllProducts(updatedProducts);
 
-        const lowStockCount = lowStock.length;
-        if (lowStockCount > 0) {
-            toast.warning(`Atención: Stock Bajo`, {
-                id: 'low-stock-alert',
-                description: `Revisa el panel, hay ${lowStockCount} productos que necesitan reposición.`,
-                duration: 5000,
-            });
-        }
+        notifyLowStock(lowStock.length);
 
         setTimeout(() => setSaleSuccess(false), 3000);
     };

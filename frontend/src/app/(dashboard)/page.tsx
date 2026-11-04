@@ -10,6 +10,7 @@ import { Loader2, AlertTriangle, TrendingUp, Package, Tag, DollarSign, Check, X 
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { todayInKiosk } from '@/lib/time';
+import { notifyLowStock } from '@/lib/notifications';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 import type { Product } from '@/types/product';
 import type { TopSeller } from '@/types/sale';
@@ -89,16 +90,7 @@ export default function Home() {
       setLowStockProducts(lowStock);
       setTopSellers(topSellers);
 
-      // Notify low stock
-      if (lowStock.length > 0) {
-        toast.error(`Atención: Stock Bajo`, {
-          id: 'low-stock-alert',
-          description: lowStock.length === 1
-            ? `Hay 1 producto que necesita reposición.`
-            : `Hay ${lowStock.length} productos que necesitan reposición.`,
-          duration: 6000,
-        });
-      }
+      notifyLowStock(lowStock.length);
     } catch (err) {
       console.error('Error fetching dashboard stats', err);
     } finally {
