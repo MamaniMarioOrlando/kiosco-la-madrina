@@ -25,6 +25,7 @@ import { productService } from '@/services/productService';
 import { useApiData } from '@/hooks/useApiData';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { ConfirmDialog, useConfirmTarget } from '@/components/common/ConfirmDialog';
 
 
 
@@ -118,9 +119,10 @@ export default function ProductsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const deactivateConfirm = useConfirmTarget<Product>();
+
     // Borrado lógico: el producto deja de venderse pero queda en el historial y se puede reactivar.
     const handleDeactivate = async (product: Product) => {
-        if (!confirm(`¿Desactivar "${product.name}"? Va a dejar de aparecer en ventas. Podés reactivarlo más tarde.`)) return;
         try {
             await productService.remove(product.id);
             toast.success(`"${product.name}" desactivado`);
@@ -341,7 +343,7 @@ export default function ProductsPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() => handleDeactivate(p)}
+                                                            onClick={() => deactivateConfirm.ask(p)}
                                                             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1 h-8 w-8 transition-colors"
                                                         >
                                                             <Archive className="h-4 w-4" />
@@ -362,6 +364,15 @@ export default function ProductsPage() {
             {canManage && (
                 <InactiveProducts reloadSignal={inactiveReloadSignal} onReactivated={fetchProducts} />
             )}
+
+            <ConfirmDialog
+                {...deactivateConfirm.dialogProps}
+                title="¿Desactivar producto?"
+                description={`"${deactivateConfirm.target?.name}" va a dejar de aparecer en ventas. Podés reactivarlo más tarde desde "Productos inactivos".`}
+                confirmLabel="Desactivar"
+                destructive
+                onConfirm={() => deactivateConfirm.target && handleDeactivate(deactivateConfirm.target)}
+            />
         </div>
     );
 }
