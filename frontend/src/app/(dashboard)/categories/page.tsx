@@ -22,6 +22,7 @@ import { categoryService } from '@/services/categoryService';
 import { useApiData } from '@/hooks/useApiData';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { ConfirmDialog, useConfirmTarget } from '@/components/common/ConfirmDialog';
 
 
 export default function CategoriesPage() {
@@ -60,10 +61,10 @@ export default function CategoriesPage() {
         }
     };
 
-    const handleDeleteCategory = async (id: number) => {
-        // Solo se pueden borrar categorías sin productos: si tiene, el backend explica qué hacer (409).
-        if (!confirm('¿Estás seguro de eliminar esta categoría?')) return;
+    const deleteConfirm = useConfirmTarget<Category>();
 
+    // Solo se pueden borrar categorías sin productos: si tiene, el backend explica qué hacer (409).
+    const handleDeleteCategory = async (id: number) => {
         try {
             await categoryService.remove(id);
             toast.success('Categoría eliminada');
@@ -215,7 +216,7 @@ export default function CategoriesPage() {
                                                         </Tooltip>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
-                                                                <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(c.id)} className="text-red-600 dark:text-red-400 p-1 h-8 w-8 transition-colors">
+                                                                <Button variant="ghost" size="sm" onClick={() => deleteConfirm.ask(c)} className="text-red-600 dark:text-red-400 p-1 h-8 w-8 transition-colors">
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>
                                                             </TooltipTrigger>
@@ -232,6 +233,15 @@ export default function CategoriesPage() {
                     </TableBody>
                 </Table>
             </div>
+
+            <ConfirmDialog
+                {...deleteConfirm.dialogProps}
+                title="¿Eliminar categoría?"
+                description={`Se va a eliminar "${deleteConfirm.target?.name}". Esta acción no se puede deshacer.`}
+                confirmLabel="Eliminar"
+                destructive
+                onConfirm={() => deleteConfirm.target && handleDeleteCategory(deleteConfirm.target.id)}
+            />
         </div>
     );
 }

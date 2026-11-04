@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CreateUserRequest, Role, User } from '@/types/user';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { ConfirmDialog, useConfirmTarget } from '@/components/common/ConfirmDialog';
 
 const EMPTY_FORM: CreateUserRequest = { username: '', email: '', password: '', role: 'EMPLOYEE' };
 
@@ -68,10 +69,10 @@ function UsersManager() {
         }
     };
 
+    const toggleConfirm = useConfirmTarget<User>();
+
     const handleToggleActive = async (user: User) => {
         const action = user.active ? 'desactivar' : 'activar';
-        if (!confirm(`¿Seguro que querés ${action} a "${user.username}"?`)) return;
-
         try {
             await userService.setActive(user.id, !user.active);
             toast.success(`Usuario "${user.username}" ${user.active ? 'desactivado' : 'activado'}`);
@@ -209,7 +210,7 @@ function UsersManager() {
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => handleToggleActive(u)}
+                                                        onClick={() => toggleConfirm.ask(u)}
                                                         className={`p-1 h-8 w-8 transition-colors ${u.active
                                                             ? 'text-red-600 dark:text-red-400'
                                                             : 'text-emerald-600 dark:text-emerald-400'}`}
@@ -227,6 +228,17 @@ function UsersManager() {
                     </TableBody>
                 </Table>
             </div>
+
+            <ConfirmDialog
+                {...toggleConfirm.dialogProps}
+                title={toggleConfirm.target?.active ? '¿Desactivar usuario?' : '¿Activar usuario?'}
+                description={toggleConfirm.target?.active
+                    ? `"${toggleConfirm.target.username}" no va a poder iniciar sesión hasta que lo vuelvas a activar.`
+                    : `"${toggleConfirm.target?.username}" va a poder iniciar sesión de nuevo.`}
+                confirmLabel={toggleConfirm.target?.active ? 'Desactivar' : 'Activar'}
+                destructive={toggleConfirm.target?.active}
+                onConfirm={() => toggleConfirm.target && handleToggleActive(toggleConfirm.target)}
+            />
         </div>
     );
 }
