@@ -1,10 +1,17 @@
 name: Java CI with Maven
 
+# Un cambio que toca solo el frontend no necesita compilar ni testear Java (de eso se ocupa frontend.yml).
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
 
 jobs:
   build:
