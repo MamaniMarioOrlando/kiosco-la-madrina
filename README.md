@@ -84,6 +84,26 @@ known to catch the bug. Docker must be running:
 ./mvnw test
 ```
 
+Frontend unit tests (Vitest) cover the money arithmetic, notifications and security headers:
+
+```bash
+cd frontend
+npm test
+```
+
+An end-to-end test (Playwright) drives a real browser through the critical path: log in, sell a
+product, find the sale in the history. It starts its own backend (port 8081) and production build of
+the frontend (port 3100) against a separate `kiosco_e2e` database, so development data is never
+touched:
+
+```bash
+docker compose up -d
+docker exec kiosco-postgres createdb -U postgres kiosco_e2e   # once
+cd frontend
+npx playwright install chromium                               # once
+npm run e2e
+```
+
 ## Running locally
 
 **Requirements:** Java 21, Node.js 20+, Docker.
