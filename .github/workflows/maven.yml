@@ -7,11 +7,13 @@ on:
     paths-ignore:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
+      - ".github/workflows/e2e.yml"
   pull_request:
     branches: [ "main" ]
     paths-ignore:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
+      - ".github/workflows/e2e.yml"
 
 jobs:
   build:
