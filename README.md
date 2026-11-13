@@ -57,8 +57,8 @@ The interesting part of this project is not the CRUD but the problems that show 
 
 ```mermaid
 flowchart LR
-    Browser["Browser<br/>(kiosk PC)"] --> Vercel["Next.js 16 frontend<br/>Vercel"]
-    Vercel -->|"REST + JWT"| Railway["Spring Boot 3 API<br/>Railway (Docker)"]
+    Browser["Browser<br/>(kiosk PC)"] -->|"same origin /api"| Vercel["Next.js 16 frontend<br/>+ API proxy<br/>Vercel"]
+    Vercel -->|"REST + JWT<br/>+ proxy secret"| Railway["Spring Boot 3 API<br/>Railway (Docker)"]
     Railway -->|"JPA + Flyway"| Neon[("PostgreSQL<br/>Neon")]
 ```
 
@@ -133,7 +133,8 @@ npm run e2e
    ./mvnw spring-boot:run
    ```
 
-4. **Frontend** at `http://localhost:3001`:
+4. **Frontend** at `http://localhost:3001`. Its `/api` proxy calls `http://localhost:8080` unless `BACKEND_URL`
+   says otherwise:
 
    ```bash
    cd frontend
@@ -156,7 +157,13 @@ profile, which is the secure production configuration.
 | `JWT_EXPIRATION` | Optional session length, `12h` by default |
 | `KIOSCO_TIME_ZONE` | Optional business time zone, `America/Argentina/Buenos_Aires` by default |
 
-Vercel only needs `NEXT_PUBLIC_API_URL`, pointing to the Railway API (`https://<service>.up.railway.app/api`).
+The browser only talks to Vercel: a Next.js route handler forwards `/api/*` to Railway. Set these Vercel
+variables for Production and Preview. They are read at runtime and never reach the browser.
+
+| Vercel variable | Purpose |
+|---|---|
+| `BACKEND_URL` | Railway origin, without `/api` (`https://<service>.up.railway.app`) |
+| `PROXY_SECRET` | The same value as in Railway |
 
 ## License
 
