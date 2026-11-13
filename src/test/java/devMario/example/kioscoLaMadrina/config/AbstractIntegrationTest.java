@@ -36,9 +36,13 @@ public abstract class AbstractIntegrationTest {
      */
     private static final String JWT_SECRET = randomBase64Secret();
 
+    /** Secreto que comparten el proxy de Next.js y el backend; aleatorio por la misma razón. */
+    protected static final String PROXY_SECRET = randomBase64Secret();
+
     @DynamicPropertySource
-    static void jwtProperties(DynamicPropertyRegistry registry) {
+    static void secretProperties(DynamicPropertyRegistry registry) {
         registry.add("kiosco.app.jwtSecret", () -> JWT_SECRET);
+        registry.add("kiosco.proxy.secret", () -> PROXY_SECRET);
     }
 
     private static String randomBase64Secret() {

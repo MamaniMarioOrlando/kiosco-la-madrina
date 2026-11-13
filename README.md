@@ -152,6 +152,7 @@ profile, which is the secure production configuration.
 | `JWT_SECRET_KEY` | Signs sessions. The app will not start if it is missing or weak |
 | `ALLOWED_ORIGINS` | CORS: the frontend URL only, never `*` |
 | `SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES` | `.*`, to read the client IP behind Railway's proxy. Safe only behind a proxy that overwrites `X-Forwarded-For` |
+| `PROXY_SECRET` | Optional, at least 32 characters (`openssl rand -base64 32`). Shared with the Next.js proxy: only requests that carry it may report the real client IP in `X-Kiosco-Client-IP`, so rate limiting counts each client and not the proxy |
 | `JWT_EXPIRATION` | Optional session length, `12h` by default |
 | `KIOSCO_TIME_ZONE` | Optional business time zone, `America/Argentina/Buenos_Aires` by default |
 
