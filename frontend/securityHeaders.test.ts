@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { buildContentSecurityPolicy, buildSecurityHeaders } from './securityHeaders';
 
-const PROD = { apiUrl: 'https://kiosco-api.example/api', isDev: false };
-const DEV = { apiUrl: 'http://localhost:8080/api', isDev: true };
+const PROD = { isDev: false };
+const DEV = { isDev: true };
 
 /** "a x y; b z" → { a: ['x', 'y'], b: ['z'] } */
 function directives(policy: string): Record<string, string[]> {
@@ -15,11 +15,8 @@ function directives(policy: string): Record<string, string[]> {
 }
 
 describe('buildContentSecurityPolicy', () => {
-  it('lets the browser talk only to its own origin and the API origin (without the path)', () => {
-    expect(directives(buildContentSecurityPolicy(PROD))['connect-src']).toEqual([
-      "'self'",
-      'https://kiosco-api.example',
-    ]);
+  it('lets the browser talk only to its own origin, where the /api proxy lives', () => {
+    expect(directives(buildContentSecurityPolicy(PROD))['connect-src']).toEqual(["'self'"]);
   });
 
   it('never allows eval in production', () => {
@@ -41,10 +38,6 @@ describe('buildContentSecurityPolicy', () => {
 
   it('allows data: images, because avatars are stored as base64', () => {
     expect(directives(buildContentSecurityPolicy(PROD))['img-src']).toContain('data:');
-  });
-
-  it('fails the build when the API URL is not a valid URL', () => {
-    expect(() => buildContentSecurityPolicy({ apiUrl: 'kiosco-api', isDev: false })).toThrow();
   });
 });
 

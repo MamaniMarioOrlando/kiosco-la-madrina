@@ -7,8 +7,12 @@ import { clearSession, getToken } from './session';
  */
 export const SIGNIN_PATH = '/auth/signin';
 
+/**
+ * Mismo dominio que la página: el proxy de Next (src/app/api/[...path]/route.ts) reenvía al backend.
+ * El navegador ya no conoce la dirección de Railway.
+ */
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
+    baseURL: '/api',
     headers: {
         'Content-Type': 'application/json',
     },

@@ -1,6 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import { defineConfig, devices } from '@playwright/test';
-import { API_URL, BACKEND_PORT, E2E_ADMIN, FRONTEND_PORT, FRONTEND_URL } from './e2e/env';
+import { API_URL, BACKEND_ORIGIN, BACKEND_PORT, E2E_ADMIN, FRONTEND_PORT, FRONTEND_URL } from './e2e/env';
+
+// Un secreto nuevo en cada corrida, compartido por los dos servidores: el robot pasa por el proxy de Next
+// igual que en producción, con TrustedProxyFilter activo en el backend.
+const PROXY_SECRET = randomBytes(32).toString('base64');
 
 export default defineConfig({
   testDir: './e2e',
@@ -38,6 +42,7 @@ export default defineConfig({
         JWT_SECRET_KEY: randomBytes(32).toString('base64'),
         ADMIN_USERNAME: E2E_ADMIN.username,
         ADMIN_PASSWORD: E2E_ADMIN.password,
+        PROXY_SECRET,
       },
     },
     {
@@ -45,7 +50,7 @@ export default defineConfig({
       url: FRONTEND_URL,
       timeout: 180_000,
       reuseExistingServer: !process.env.CI,
-      env: { NEXT_PUBLIC_API_URL: API_URL },
+      env: { BACKEND_URL: BACKEND_ORIGIN, PROXY_SECRET },
     },
   ],
 });

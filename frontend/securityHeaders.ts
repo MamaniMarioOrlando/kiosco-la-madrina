@@ -5,15 +5,11 @@
  * sin levantar Next: recibe todo lo que depende del entorno.
  */
 export interface SecurityHeadersOptions {
-  /** URL de la API (NEXT_PUBLIC_API_URL). Solo se usa su origen para connect-src. */
-  apiUrl: string;
   /** En desarrollo, React y el hot reload necesitan eval y WebSocket. */
   isDev: boolean;
 }
 
-export function buildContentSecurityPolicy({ apiUrl, isDev }: SecurityHeadersOptions): string {
-  const apiOrigin = new URL(apiUrl).origin;
-
+export function buildContentSecurityPolicy({ isDev }: SecurityHeadersOptions): string {
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
     // 'unsafe-inline': Next.js hidrata con scripts inline y el tema oscuro se aplica con uno.
@@ -26,8 +22,9 @@ export function buildContentSecurityPolicy({ apiUrl, isDev }: SecurityHeadersOpt
     'img-src': ["'self'", 'data:', 'blob:'],
     // next/font descarga las fuentes en el build y las sirve desde el mismo dominio.
     'font-src': ["'self'"],
-    // La única API a la que el navegador puede hablar: un XSS no puede mandar datos a otro dominio.
-    'connect-src': ["'self'", apiOrigin, ...(isDev ? ['ws:'] : [])],
+    // El navegador solo habla con su propio dominio (la API pasa por el proxy /api):
+    // un XSS no puede mandar datos a ningún otro lado.
+    'connect-src': ["'self'", ...(isDev ? ['ws:'] : [])],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
