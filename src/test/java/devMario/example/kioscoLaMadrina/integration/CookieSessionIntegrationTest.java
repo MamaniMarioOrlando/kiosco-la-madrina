@@ -83,6 +83,30 @@ class CookieSessionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void theCsrfTokenSurvivesAuthenticatedRequests() throws Exception {
+        // Como navega una persona: login, varias pantallas (GET) y recién después una venta (POST).
+        // Spring rota el token CSRF en cada "inicio de sesión", y con JWT cada pedido autentica de nuevo:
+        // sin cuidarlo, cada GET borraba XSRF-TOKEN y el siguiente POST recibía 403.
+        MockHttpServletResponse login = signin();
+        Cookie session = sessionCookie(login);
+        Cookie csrfCookie = new Cookie(XSRF_COOKIE, cookieValue(login, XSRF_COOKIE));
+
+        MockHttpServletResponse read = mockMvc.perform(get("/api/categories").cookie(session, csrfCookie))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertThat(read.getHeaders(HttpHeaders.SET_COOKIE))
+                .as("un GET autenticado no toca la cookie XSRF-TOKEN")
+                .noneMatch(header -> header.startsWith(XSRF_COOKIE + "="));
+
+        mockMvc.perform(post("/api/categories")
+                        .cookie(session, csrfCookie)
+                        .header(XSRF_HEADER, csrfCookie.getValue())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(newCategory()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void aCsrfTokenThatDoesNotMatchItsCookie_IsRejected() throws Exception {
         MockHttpServletResponse login = signin();
 
