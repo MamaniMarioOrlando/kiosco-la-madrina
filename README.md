@@ -43,6 +43,9 @@ The interesting part of this project is not the CRUD but the problems that show 
 - **Time zones done right.** Sales are stored as UTC instants; a business day is 00:00–23:59 in
   `America/Argentina/Buenos_Aires`. Before this, a sale at 23:30 landed on the next day because the server
   runs in UTC. The clock is injected, so tests can pin the time.
+- **Session out of JavaScript's reach.** The browser only talks to its own domain: a Next.js proxy forwards
+  `/api` to the backend. The session travels in an httpOnly, `SameSite=Strict` cookie, so an XSS cannot
+  steal it, and every cookie-authenticated write needs a double-submit CSRF token.
 - **Secure by default.** The app refuses to start with a weak or sample JWT secret. Login is locked after
   5 failed attempts per account and network, plus a per-IP rate limit. Errors never leak internals, and
   Swagger and SQL logging only exist in the `dev` profile.

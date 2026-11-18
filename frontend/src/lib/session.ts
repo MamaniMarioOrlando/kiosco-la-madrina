@@ -5,6 +5,10 @@ import { useSyncExternalStore } from 'react';
 /**
  * Única fuente de verdad del usuario logueado en el navegador.
  *
+ * Acá solo vive lo que la pantalla necesita mostrar (nombre, roles, avatar). La sesión de verdad, el JWT,
+ * viaja en una cookie httpOnly que JavaScript no puede leer: si un script malicioso llegara a correr en la
+ * página, no tendría ningún token para robarse.
+ *
  * Antes cada componente leía localStorage por su cuenta y solo al montarse, así que un cambio
  * (p. ej. el avatar) no se veía en el resto de la pantalla sin recargar. Con este store, quien
  * lo modifica notifica y todos los componentes suscritos se actualizan al instante.
@@ -17,8 +21,14 @@ export interface SessionUser {
     avatarUrl?: string | null;
 }
 
-const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
+
+// Hasta este cambio el JWT se guardaba en localStorage. Se borra el que haya quedado en navegadores que ya
+// estaban logueados, así no sigue ahí al alcance de cualquier script. Se puede quitar cuando venzan (12 h).
+const LEGACY_TOKEN_KEY = 'token';
+if (typeof window !== 'undefined') {
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+}
 const CHANGE_EVENT = 'session-change';
 
 // useSyncExternalStore exige que el snapshot sea la misma referencia mientras no cambie.
@@ -56,8 +66,7 @@ function subscribe(onChange: () => void) {
     };
 }
 
-export function startSession(token: string, user: SessionUser) {
-    localStorage.setItem(TOKEN_KEY, token);
+export function startSession(user: SessionUser) {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     notify();
 }
@@ -70,13 +79,8 @@ export function updateSessionUser(changes: Partial<SessionUser>) {
 }
 
 export function clearSession() {
-    localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     notify();
-}
-
-export function getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
 }
 
 export function isAdmin(user: SessionUser | null): boolean {

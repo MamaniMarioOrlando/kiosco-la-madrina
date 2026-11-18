@@ -223,6 +223,8 @@ export default function SalesHistoryPage() {
                                     variant="ghost"
                                     onClick={() => setSelectedSale(null)}
                                     className="text-white hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+                                    // Solo tiene un ícono: sin este nombre, un lector de pantalla diría "botón" a secas.
+                                    aria-label="Cerrar detalle"
                                 >
                                     <X className="h-6 w-6" />
                                 </Button>

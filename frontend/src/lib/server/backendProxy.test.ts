@@ -47,7 +47,8 @@ describe('upstreamRequestHeaders', () => {
     accept: 'application/json',
     authorization: 'Bearer abc',
     'content-type': 'application/json',
-    cookie: 'theme=dark',
+    cookie: 'kiosco_session=jwt; XSRF-TOKEN=abc',
+    'x-xsrf-token': 'abc',
     host: 'kiosco-la-madrina.vercel.app',
     origin: 'https://kiosco-la-madrina.vercel.app',
     'x-forwarded-for': '181.45.12.7',
@@ -57,12 +58,13 @@ describe('upstreamRequestHeaders', () => {
     [CLIENT_IP_HEADER]: '1.2.3.4',
   });
 
-  it('forwards what the API needs: session, body type and cookies', () => {
+  it('forwards what the API needs: session cookie, CSRF token and body type', () => {
     const sent = upstreamRequestHeaders(browser, {});
+    expect(sent.get('cookie')).toBe('kiosco_session=jwt; XSRF-TOKEN=abc');
+    expect(sent.get('x-xsrf-token')).toBe('abc');
     expect(sent.get('authorization')).toBe('Bearer abc');
     expect(sent.get('content-type')).toBe('application/json');
     expect(sent.get('accept')).toBe('application/json');
-    expect(sent.get('cookie')).toBe('theme=dark');
   });
 
   it('drops everything else (allowlist), including the Origin of a server-to-server call', () => {

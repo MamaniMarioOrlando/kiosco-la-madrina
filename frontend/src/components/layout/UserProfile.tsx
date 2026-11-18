@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Settings, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { clearSession, isAdmin, useCurrentUser } from '@/lib/session';
+import { isAdmin, useCurrentUser } from '@/lib/session';
+import { useLogout } from '@/hooks/useLogout';
 
 export function UserProfile() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const user = useCurrentUser();
+    const logout = useLogout();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -26,8 +28,7 @@ export function UserProfile() {
 
     const handleLogout = () => {
         setIsOpen(false);
-        clearSession();
-        router.replace('/login');
+        void logout();
     };
 
     // Mientras se hidrata no sabemos quién es: un placeholder neutro evita mostrar datos falsos.
