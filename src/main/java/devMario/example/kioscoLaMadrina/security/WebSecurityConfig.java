@@ -2,7 +2,6 @@ package devMario.example.kioscoLaMadrina.security;
 
 import devMario.example.kioscoLaMadrina.security.jwt.AuthEntryPointJwt;
 import devMario.example.kioscoLaMadrina.security.jwt.AuthTokenFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,12 +18,6 @@ import org.springframework.security.web.authentication.session.NullAuthenticated
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.config.Customizer;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableMethodSecurity
@@ -60,7 +53,9 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
+        // Sin CORS a propósito: el navegador le habla solo al frontend (mismo origen, /api) y el proxy de
+        // Next reenvía de servidor a servidor. Ningún otro sitio necesita permiso para leer la API.
+        http
                 // Double submit: el backend deja el token en la cookie XSRF-TOKEN (legible por JavaScript) y
                 // el frontend lo copia en el encabezado X-XSRF-TOKEN. Otra página no puede leer esa cookie,
                 // así que no puede armar el encabezado. Solo se exige con la cookie de sesión.
@@ -105,25 +100,5 @@ public class WebSecurityConfig {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repository.setCookieCustomizer(cookie -> cookie.sameSite("Strict"));
         return repository;
-    }
-
-    @Value("${ALLOWED_ORIGINS:http://localhost:3001}")
-    private String allowedOrigins;
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(AllowedOrigins.parse(allowedOrigins));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-
-        // Seguro porque AllowedOrigins rechaza el comodín: solo dominios exactos pueden mandar credenciales.
-        configuration.setAllowCredentials(true);
-
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }
