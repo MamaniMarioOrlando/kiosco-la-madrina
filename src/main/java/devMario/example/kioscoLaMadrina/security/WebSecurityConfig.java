@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -68,7 +69,11 @@ public class WebSecurityConfig {
                         // Token tal cual, sin el enmascarado contra BREACH: ese ataque lee el token de una
                         // respuesta HTML comprimida, y acá nunca viaja en el cuerpo, solo en la cookie.
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        .requireCsrfProtectionMatcher(new SessionCookieCsrfMatcher()))
+                        .requireCsrfProtectionMatcher(new SessionCookieCsrfMatcher())
+                        // Spring rota el token CSRF en cada "inicio de sesión". Con JWT, AuthTokenFilter
+                        // autentica en CADA pedido, así que la rotación borraba XSRF-TOKEN en cada respuesta
+                        // y el siguiente POST recibía 403. Sin sesión del servidor no hay nada que rotar.
+                        .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy()))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
                         .accessDeniedHandler(accessDeniedHandler))
