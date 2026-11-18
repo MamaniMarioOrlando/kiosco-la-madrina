@@ -10,12 +10,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.config.Customizer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -58,7 +60,15 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
+                // Double submit: el backend deja el token en la cookie XSRF-TOKEN (legible por JavaScript) y
+                // el frontend lo copia en el encabezado X-XSRF-TOKEN. Otra página no puede leer esa cookie,
+                // así que no puede armar el encabezado. Solo se exige con la cookie de sesión.
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfTokenRepository())
+                        // Token tal cual, sin el enmascarado contra BREACH: ese ataque lee el token de una
+                        // respuesta HTML comprimida, y acá nunca viaja en el cuerpo, solo en la cookie.
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .requireCsrfProtectionMatcher(new SessionCookieCsrfMatcher()))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
                         .accessDeniedHandler(accessDeniedHandler))
@@ -79,8 +89,17 @@ public class WebSecurityConfig {
 
         http.addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class);
 
         return http.build();
+    }
+
+    private static CookieCsrfTokenRepository csrfTokenRepository() {
+        // HttpOnly=false a propósito: el frontend TIENE que poder leerla. Lo que la protege es que otra
+        // página no puede leer cookies de este dominio (Same-Origin Policy).
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieCustomizer(cookie -> cookie.sameSite("Strict"));
+        return repository;
     }
 
     @Value("${ALLOWED_ORIGINS:http://localhost:3001}")

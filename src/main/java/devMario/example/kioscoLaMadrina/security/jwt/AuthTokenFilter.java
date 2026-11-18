@@ -58,13 +58,16 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Dos formas de presentar el JWT: "Authorization: Bearer" (Swagger, scripts, tests) o la cookie de sesión
+     * (el navegador). Si viene el encabezado, se usa SOLO el encabezado, aunque sea inválido: si se cayera a la
+     * cookie, "Authorization: Bearer basura" + la cookie esquivaría el control CSRF, que no se aplica a Bearer.
+     */
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
-
-        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7);
+        if (headerAuth != null) {
+            return StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ") ? headerAuth.substring(7) : null;
         }
-
-        return null;
+        return SessionCookie.read(request).orElse(null);
     }
 }
