@@ -9,4 +9,6 @@ import type { LoginRequest, LoginResponse } from '@/types/auth';
 export const authService = {
     login: (credentials: LoginRequest) =>
         api.post<LoginResponse>(SIGNIN_PATH, credentials).then((res) => res.data),
+    /** El backend borra la cookie de sesión: JavaScript no puede borrar una cookie httpOnly. */
+    logout: () => api.post<void>('/auth/logout').then(() => undefined),
 };

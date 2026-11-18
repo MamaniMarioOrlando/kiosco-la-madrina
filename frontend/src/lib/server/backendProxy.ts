@@ -17,7 +17,15 @@ const API_PREFIX = '/api/';
  * encabezado nuevo de Vercel o del navegador; esta falla "cerrada".
  * Origin no está: la llamada ahora es de servidor a servidor, y el CORS del backend no aplica.
  */
-const FORWARDED_REQUEST_HEADERS = ['accept', 'accept-language', 'authorization', 'content-type', 'cookie'];
+const FORWARDED_REQUEST_HEADERS = [
+  'accept',
+  'accept-language',
+  'authorization',
+  'content-type',
+  // La sesión (cookie httpOnly) y el token CSRF que la acompaña en los pedidos que cambian datos.
+  'cookie',
+  'x-xsrf-token',
+];
 
 /**
  * Encabezados que describen la conexión o la codificación de la respuesta original, no el contenido:

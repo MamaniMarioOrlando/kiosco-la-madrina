@@ -42,6 +42,11 @@ test('a cashier logs in, sells a product and finds the sale in the history', asy
   await page.getByRole('button', { name: 'Ingresar' }).click();
   await expect(page).toHaveURL('/');
 
+  // La sesión vive en una cookie que JavaScript no puede leer, y no queda ningún token en localStorage.
+  const session = (await page.context().cookies()).find((cookie) => cookie.name === 'kiosco_session');
+  expect(session?.httpOnly, 'la cookie de sesión es httpOnly').toBe(true);
+  expect(await page.evaluate(() => localStorage.getItem('token'))).toBeNull();
+
   // 2. Venta: busca el producto, lo agrega al carrito y paga con $2.000 en efectivo.
   await page.getByRole('link', { name: 'Nueva Venta' }).click();
   await page.getByPlaceholder('Nombre o código de barras...').fill(product.name);
@@ -63,4 +68,12 @@ test('a cashier logs in, sells a product and finds the sale in the history', asy
 
   await latestSale.getByRole('button', { name: 'Detalles' }).click();
   await expect(page.getByRole('cell', { name: product.name })).toBeVisible();
+  await page.getByRole('button', { name: 'Cerrar detalle' }).click();
+
+  // 4. Logout: el backend borra la cookie, y la API deja de reconocer al navegador.
+  await page.getByRole('button', { name: E2E_ADMIN.username }).click();
+  await page.getByRole('button', { name: 'Cerrar Sesión' }).click();
+  await expect(page).toHaveURL('/login');
+  expect((await page.context().cookies()).some((cookie) => cookie.name === 'kiosco_session')).toBe(false);
+  expect((await page.request.get('/api/categories')).status()).toBe(401);
 });

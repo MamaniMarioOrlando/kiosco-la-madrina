@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Settings, Shield, LogOut, Camera, Loader2 } from 'lucide-react';
@@ -9,19 +8,17 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { userService } from '@/services/userService';
 import { cn } from '@/lib/utils';
-import { clearSession, updateSessionUser, useCurrentUser } from '@/lib/session';
+import { updateSessionUser, useCurrentUser } from '@/lib/session';
+import { useLogout } from '@/hooks/useLogout';
 import { PageHeader } from '@/components/layout/PageHeader';
 
 export default function SettingsPage() {
-    const router = useRouter();
     const user = useCurrentUser();
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleLogout = () => {
-        clearSession();
-        router.replace('/login');
-    };
+    const logout = useLogout();
+    const handleLogout = () => void logout();
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();

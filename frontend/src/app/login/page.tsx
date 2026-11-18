@@ -47,7 +47,8 @@ export default function LoginPage() {
         try {
             const session = await authService.login({ username, password });
 
-            startSession(session.token, {
+            // El JWT ya quedó en la cookie httpOnly que puso el backend; acá solo se guarda qué mostrar.
+            startSession({
                 id: session.id,
                 username: session.username,
                 roles: session.roles,
