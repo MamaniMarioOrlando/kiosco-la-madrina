@@ -37,7 +37,6 @@ export default defineConfig({
         DB_URL: process.env.E2E_DB_URL ?? 'jdbc:postgresql://localhost:5433/kiosco_e2e',
         DB_USERNAME: process.env.E2E_DB_USERNAME ?? 'postgres',
         DB_PASSWORD: process.env.E2E_DB_PASSWORD ?? 'password',
-        ALLOWED_ORIGINS: FRONTEND_URL,
         // Una clave nueva en cada corrida: no hay ningún secreto guardado en el repositorio.
         JWT_SECRET_KEY: randomBytes(32).toString('base64'),
         ADMIN_USERNAME: E2E_ADMIN.username,

@@ -15,7 +15,7 @@ const API_PREFIX = '/api/';
 /**
  * Lista blanca: solo viaja lo que la API necesita. Una lista negra habría que mantenerla al día con cada
  * encabezado nuevo de Vercel o del navegador; esta falla "cerrada".
- * Origin no está: la llamada ahora es de servidor a servidor, y el CORS del backend no aplica.
+ * Origin no está: la llamada es de servidor a servidor (el backend ya no tiene CORS: ningún navegador le habla directo).
  */
 const FORWARDED_REQUEST_HEADERS = [
   'accept',
