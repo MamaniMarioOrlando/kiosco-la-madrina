@@ -45,7 +45,8 @@ The interesting part of this project is not the CRUD but the problems that show 
   runs in UTC. The clock is injected, so tests can pin the time.
 - **Session out of JavaScript's reach.** The browser only talks to its own domain: a Next.js proxy forwards
   `/api` to the backend. The session travels in an httpOnly, `SameSite=Strict` cookie, so an XSS cannot
-  steal it, and every cookie-authenticated write needs a double-submit CSRF token.
+  steal it, and every cookie-authenticated write needs a double-submit CSRF token. The backend has no CORS:
+  no other site may read it. Design and known limitations: [docs/security.md](docs/security.md).
 - **Secure by default.** The app refuses to start with a weak or sample JWT secret. Login is locked after
   5 failed attempts per account and network, plus a per-IP rate limit. Errors never leak internals, and
   Swagger and SQL logging only exist in the `dev` profile.
@@ -74,20 +75,22 @@ consistent and snapshots the unit price).
 | **Backend** | Java 21, Spring Boot 3.4, Spring Security, JWT (jjwt), Spring Data JPA, Flyway, MapStruct, Lombok, Bucket4j + Caffeine |
 | **Frontend** | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Axios, Sonner |
 | **Database** | PostgreSQL 16 (local) / 17 (Neon) |
-| **Testing** | JUnit 5, Mockito, MockMvc, Testcontainers |
+| **Testing** | JUnit 5, Mockito, MockMvc, Testcontainers, Vitest, Playwright |
 | **CI/CD** | GitHub Actions on every pull request; Vercel and Railway deploy `main` |
 
 ## Testing
 
-More than 140 automated tests (unit and integration) with about 89% line coverage of the backend
-(measured with JaCoCo). Every test that guards a bug fix was written first and seen failing, so it is
-known to catch the bug. Docker must be running:
+185 backend tests (unit and integration) with about 93% line coverage (measured with JaCoCo).
+Security rules are tested through the full Spring Security filter chain: cookie attributes, CSRF
+rejection, Bearer clients, logout, rate limiting and the absence of CORS. Every test that guards a bug fix
+was written first and seen failing, so it is known to catch the bug. Docker must be running:
 
 ```bash
 ./mvnw test
 ```
 
-Frontend unit tests (Vitest) cover the money arithmetic, notifications and security headers:
+Frontend unit tests (Vitest) cover the money arithmetic, notifications, security headers and the
+API proxy:
 
 ```bash
 cd frontend
@@ -95,9 +98,10 @@ npm test
 ```
 
 An end-to-end test (Playwright) drives a real browser through the critical path: log in, sell a
-product, find the sale in the history. It starts its own backend (port 8081) and production build of
-the frontend (port 3100) against a separate `kiosco_e2e` database, so development data is never
-touched:
+product, find the sale in the history, log out. It also checks that the session cookie is httpOnly, that
+no token is kept in `localStorage`, and that the API answers 401 after logout. It starts its own backend
+(port 8081) and production build of the frontend (port 3100) against a separate `kiosco_e2e` database, so
+development data is never touched:
 
 ```bash
 docker compose up -d
