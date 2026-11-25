@@ -80,7 +80,8 @@ consistent and snapshots the unit price).
 
 ## Testing
 
-185 backend tests (unit and integration) with about 93% line coverage (measured with JaCoCo).
+185 backend tests (unit and integration) with about 93% line coverage. CI fails below 90% (JaCoCo) and
+publishes the HTML report as a build artifact; locally, `./mvnw verify` writes it to `target/site/jacoco/`.
 Security rules are tested through the full Spring Security filter chain: cookie attributes, CSRF
 rejection, Bearer clients, logout, rate limiting and the absence of CORS. Every test that guards a bug fix
 was written first and seen failing, so it is known to catch the bug. Test classes run in random order, so a
