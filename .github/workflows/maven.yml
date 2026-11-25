@@ -1,6 +1,7 @@
 name: Java CI with Maven
 
-# Un cambio que toca solo el frontend no necesita compilar ni testear Java (de eso se ocupa frontend.yml).
+# Un cambio que toca solo el frontend no necesita compilar ni testear Java (de eso se ocupa frontend.yml),
+# y uno que toca solo documentación (README, docs/) tampoco.
 on:
   push:
     branches: [ "main" ]
@@ -8,12 +9,16 @@ on:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
       - ".github/workflows/e2e.yml"
+      - "docs/**"
+      - "**.md"
   pull_request:
     branches: [ "main" ]
     paths-ignore:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
       - ".github/workflows/e2e.yml"
+      - "docs/**"
+      - "**.md"
 
 jobs:
   build:

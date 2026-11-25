@@ -27,6 +27,10 @@
 		<url/>
 	</scm>
 	<properties>
+		<!-- Orden aleatorio de las clases de test, en local y en el CI. Un test que deja "basura" en el contexto
+		     compartido (como csrf() en el PR #45) aparece enseguida y no por casualidad. Surefire imprime la semilla:
+		     -Dsurefire.runOrder.random.seed=<semilla> repite el mismo orden para depurar. -->
+		<surefire.runOrder>random</surefire.runOrder>
 		<java.version>21</java.version>
 		<jjwt.version>0.13.0</jjwt.version>
 	</properties>
