@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,8 +57,10 @@ public class ProductIntegrationTest extends AbstractIntegrationTest {
 
         // 2. ACT (ACCIÓN)
         // Disparamos la petición Web
+        // Sin .with(csrf()): sin la cookie de sesión no se exige el token (SessionCookieCsrfMatcher). Además
+        // ese helper reemplaza para siempre el repositorio CSRF del contexto compartido, y los tests de
+        // CookieSessionIntegrationTest que corrieran después dejaban de recibir la cookie XSRF-TOKEN.
         mockMvc.perform(post("/api/products")
-                .with(csrf()) // Evadimos la seguridad anti-hackers para el POST
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(productJson))
                 .andExpect(status().isCreated()); // Aserción Web: Respuesta 201 Created

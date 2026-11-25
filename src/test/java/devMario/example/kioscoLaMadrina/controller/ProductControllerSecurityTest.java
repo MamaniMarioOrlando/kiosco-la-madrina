@@ -23,6 +23,9 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 // El filtro de rate limiting (capa web) necesita sus políticas y el formato JSON de errores.
 @Import({RateLimitConfig.class, SecurityErrorResponder.class})
 @EnableMethodSecurity
+// .with(csrf()) sí hace falta acá: un @WebMvcTest no carga WebSecurityConfig sino la seguridad por defecto de
+// Spring Boot, que exige CSRF en todo DELETE. Es seguro porque este slice tiene su propio contexto; en los
+// tests de integración (contexto compartido) no se usa: ver ProductIntegrationTest.
 public class ProductControllerSecurityTest {
 
     @Autowired
