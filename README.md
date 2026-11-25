@@ -83,7 +83,9 @@ consistent and snapshots the unit price).
 185 backend tests (unit and integration) with about 93% line coverage (measured with JaCoCo).
 Security rules are tested through the full Spring Security filter chain: cookie attributes, CSRF
 rejection, Bearer clients, logout, rate limiting and the absence of CORS. Every test that guards a bug fix
-was written first and seen failing, so it is known to catch the bug. Docker must be running:
+was written first and seen failing, so it is known to catch the bug. Test classes run in random order, so a
+test that leaks state into the shared Spring context fails early; the log prints the seed to replay a run
+with `-Dsurefire.runOrder.random.seed=<seed>`. Docker must be running:
 
 ```bash
 ./mvnw test
