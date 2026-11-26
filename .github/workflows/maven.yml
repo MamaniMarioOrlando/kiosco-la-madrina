@@ -34,5 +34,17 @@ jobs:
         distribution: 'temurin'
         cache: maven
         
-    - name: Build and run Integration Tests
-      run: mvn -B package --file pom.xml
+    # verify = package + reporte de cobertura + piso mínimo (JaCoCo, ver pom.xml).
+    - name: Build, test and check coverage
+      run: mvn -B verify --file pom.xml
+
+    # El reporte HTML queda descargable desde la página de la corrida (Summary → Artifacts), también si
+    # falla el piso de cobertura: ahí se ve qué líneas quedaron sin tests. (Si fallan los tests, no hay
+    # reporte: Maven corta antes de verify.)
+    - name: Upload coverage report
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-report
+        path: target/site/jacoco/
+        retention-days: 7
