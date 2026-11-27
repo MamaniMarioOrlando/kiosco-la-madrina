@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { productService } from '@/services/productService';
 import { saleService } from '@/services/saleService';
 import type { PaymentMethod, SaleRequest } from '@/types/sale';
@@ -14,6 +14,7 @@ import { notifyLowStock } from '@/lib/notifications';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Loader2, Barcode, Handshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from '@/types/product';
+import { useApiData } from '@/hooks/useApiData';
 
 
 // Con un id fijo, sonner reemplaza el aviso en vez de apilar uno por cada clic en "+".
@@ -24,27 +25,14 @@ interface CartItem extends Product {
 }
 
 export default function SalesPage() {
-    const [allProducts, setAllProducts] = useState<Product[]>([]);
+    const { data: allProducts, loading, reload: reloadProducts } = useApiData(productService.findAll, [], {
+        errorMessage: 'No se pudieron cargar los productos',
+    });
     const [searchTerm, setSearchTerm] = useState('');
     const [cart, setCart] = useState<CartItem[]>([]);
-    const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [amountPaid, setAmountPaid] = useState<string>('');
     const [saleSuccess, setSaleSuccess] = useState(false);
-
-    useEffect(() => {
-        fetchProducts();
-    }, []);
-
-    const fetchProducts = async () => {
-        try {
-            setAllProducts(await productService.findAll());
-        } catch (err) {
-            console.error('Error fetching products', err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const filteredProducts = allProducts.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,11 +96,10 @@ export default function SalesPage() {
         setAmountPaid('');
 
         // Check for low stock after sale
-        const [updatedProducts, lowStock] = await Promise.all([
-            productService.findAll(),
+        const [, lowStock] = await Promise.all([
+            reloadProducts(),
             productService.findLowStock(),
         ]);
-        setAllProducts(updatedProducts);
 
         notifyLowStock(lowStock.length);
 

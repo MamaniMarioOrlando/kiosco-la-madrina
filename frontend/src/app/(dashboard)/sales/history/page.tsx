@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { saleService } from '@/services/saleService';
 import {
     Table,
@@ -19,48 +19,69 @@ import { isAdmin, useCurrentUser } from '@/lib/session';
 import { VoidSale } from '@/components/sales/VoidSale';
 import type { DailySalesSummary, Sale } from '@/types/sale';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { useApiData } from '@/hooks/useApiData';
+
+type ViewMode = 'TODAY' | 'ALL';
+const ITEMS_PER_PAGE = 8;
+
+interface HistoryPage {
+    sales: Sale[];
+    summary: DailySalesSummary;
+    totalPages: number;
+    totalElements: number;
+    /** Qué página y vista son estos datos: mientras no coincidan con lo pedido, se está cargando. */
+    page: number;
+    mode: ViewMode;
+}
+
+const EMPTY_HISTORY: HistoryPage = {
+    sales: [],
+    summary: { cashTotal: 0, mpTotal: 0, grandTotal: 0 },
+    totalPages: 0,
+    totalElements: 0,
+    page: 0,
+    mode: 'TODAY',
+};
+
+async function fetchHistory(page: number, mode: ViewMode): Promise<HistoryPage> {
+    // Sin fecha, el backend devuelve todo el historial.
+    const date = mode === 'TODAY' ? todayInKiosk() : undefined;
+    const [salesPage, summary] = await Promise.all([
+        saleService.findPage({ date, page, size: ITEMS_PER_PAGE }),
+        saleService.getSummary(date),
+    ]);
+    return {
+        sales: salesPage.content,
+        summary,
+        totalPages: salesPage.totalPages,
+        totalElements: salesPage.totalElements,
+        page,
+        mode,
+    };
+}
 
 
 
 export default function SalesHistoryPage() {
-    const [sales, setSales] = useState<Sale[]>([]);
-    const [summary, setSummary] = useState<DailySalesSummary>({ cashTotal: 0, mpTotal: 0, grandTotal: 0 });
-    const [loading, setLoading] = useState(true);
-    const [pageLoading, setPageLoading] = useState(false);
     const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-    const [viewMode, setViewMode] = useState<'TODAY' | 'ALL'>('TODAY');
+    const [viewMode, setViewMode] = useState<ViewMode>('TODAY');
     const [currentPage, setCurrentPage] = useState(0); // 0-indexed for backend
-    const [totalPages, setTotalPages] = useState(0);
-    const [totalElements, setTotalElements] = useState(0);
-    const ITEMS_PER_PAGE = 8;
     const currentUser = useCurrentUser();
 
-    useEffect(() => {
-        fetchData(0, viewMode);
-    }, [viewMode]);
+    // Cambiar de vista o de página cambia refreshKey, y el hook pide los datos una sola vez.
+    const { data: history, loading, failed, reload } = useApiData(
+        () => fetchHistory(currentPage, viewMode),
+        EMPTY_HISTORY,
+        { errorMessage: 'No se pudo cargar el historial', refreshKey: `${viewMode}:${currentPage}` },
+    );
+    const { sales, summary, totalPages, totalElements } = history;
+    // Derivado, no estado: se está cargando mientras lo que se ve no es lo que se pidió. Si falló,
+    // los botones se habilitan igual para poder reintentar.
+    const pageLoading = !failed && (history.page !== currentPage || history.mode !== viewMode);
 
-    const fetchData = async (page: number, mode: 'TODAY' | 'ALL') => {
-        setPageLoading(true);
-        try {
-            // Sin fecha, el backend devuelve todo el historial.
-            const date = mode === 'TODAY' ? todayInKiosk() : undefined;
-
-            const [salesPage, daySummary] = await Promise.all([
-                saleService.findPage({ date, page, size: ITEMS_PER_PAGE }),
-                saleService.getSummary(date)
-            ]);
-
-            setSales(salesPage.content);
-            setTotalPages(salesPage.totalPages);
-            setTotalElements(salesPage.totalElements);
-            setCurrentPage(page);
-            setSummary(daySummary);
-        } catch (err) {
-            console.error('Error fetching sales', err);
-        } finally {
-            setLoading(false);
-            setPageLoading(false);
-        }
+    const showView = (mode: ViewMode) => {
+        setViewMode(mode);
+        setCurrentPage(0);
     };
 
     if (loading) {
@@ -78,14 +99,14 @@ export default function SalesHistoryPage() {
                     <Button 
                         variant={viewMode === 'TODAY' ? 'default' : 'outline'} 
                         className={viewMode === 'TODAY' ? 'bg-orange-600 hover:bg-orange-700' : ''}
-                        onClick={() => { setViewMode('TODAY'); fetchData(0, 'TODAY'); }}
+                        onClick={() => showView('TODAY')}
                     >
                         Cierre de Hoy
                     </Button>
                     <Button 
                         variant={viewMode === 'ALL' ? 'default' : 'outline'} 
                         className={viewMode === 'ALL' ? 'bg-slate-800 hover:bg-slate-900 text-white' : ''}
-                        onClick={() => { setViewMode('ALL'); fetchData(0, 'ALL'); }}
+                        onClick={() => showView('ALL')}
                     >
                         Histórico Completo
                     </Button>
@@ -188,13 +209,13 @@ export default function SalesHistoryPage() {
                             <Button 
                                 variant="outline" size="sm" 
                                 disabled={currentPage === 0 || pageLoading} 
-                                onClick={() => fetchData(currentPage - 1, viewMode)}>
+                                onClick={() => setCurrentPage(currentPage - 1)}>
                                 Anterior
                             </Button>
                             <Button 
                                 variant="outline" size="sm" 
                                 disabled={currentPage >= totalPages - 1 || pageLoading} 
-                                onClick={() => fetchData(currentPage + 1, viewMode)}>
+                                onClick={() => setCurrentPage(currentPage + 1)}>
                                 Siguiente
                             </Button>
                         </div>
@@ -265,7 +286,7 @@ export default function SalesHistoryPage() {
                                     canVoid={isAdmin(currentUser)}
                                     onVoided={(voided) => {
                                         setSelectedSale(voided);
-                                        fetchData(currentPage, viewMode);
+                                        reload();
                                     }}
                                 />
                             </div>
