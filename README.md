@@ -49,7 +49,8 @@ The interesting part of this project is not the CRUD but the problems that show 
   no other site may read it. Design and known limitations: [docs/security.md](docs/security.md).
 - **Secure by default.** The app refuses to start with a weak or sample JWT secret. Login is locked after
   5 failed attempts per account and network, plus a per-IP rate limit. Errors never leak internals, and
-  Swagger and SQL logging only exist in the `dev` profile.
+  Swagger and SQL logging only exist in the `dev` profile. The Docker image runs as an unprivileged user, and
+  its build only receives `pom.xml` and `src/` (allowlist `.dockerignore`), so local secrets never reach it.
 - **Real database in tests.** Every test that touches the database runs on PostgreSQL with Testcontainers,
   not an in-memory substitute, because H2 does not behave like production.
 - **Versioned schema.** Flyway migrations, including guarded data fixes that are no-ops on any other

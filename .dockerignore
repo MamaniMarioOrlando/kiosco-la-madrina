@@ -1,0 +1,5 @@
+# Lista blanca: Docker solo recibe lo que el build necesita. Todo lo demás (frontend/node_modules, target/,
+# .git, y sobre todo .env con secretos locales) nunca sale de la máquina, aunque alguien escriba COPY . .
+*
+!pom.xml
+!src/
