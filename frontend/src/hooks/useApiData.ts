@@ -24,6 +24,8 @@ export function useApiData<T>(fetcher: () => Promise<T>, initialData: T, options
     const { errorMessage, refreshMs, refreshKey } = options;
     const [data, setData] = useState<T>(initialData);
     const [loading, setLoading] = useState(true);
+    // Si la última carga falló, los datos que se ven son los de antes (o los iniciales).
+    const [failed, setFailed] = useState(false);
 
     // Siempre la última versión de fetcher, sin que sea dependencia de los efectos: si quien llama
     // pasa una función nueva en cada render (() => ...), no se dispara un pedido por render.
@@ -35,7 +37,9 @@ export function useApiData<T>(fetcher: () => Promise<T>, initialData: T, options
     const reload = useCallback(async () => {
         try {
             setData(await fetcherRef.current());
+            setFailed(false);
         } catch (err) {
+            setFailed(true);
             if (errorMessage) {
                 toast.error(apiErrorMessage(err, errorMessage));
             } else {
@@ -54,5 +58,5 @@ export function useApiData<T>(fetcher: () => Promise<T>, initialData: T, options
         return () => clearInterval(interval);
     }, [reload, refreshMs, refreshKey]);
 
-    return { data, loading, reload };
+    return { data, loading, failed, reload };
 }

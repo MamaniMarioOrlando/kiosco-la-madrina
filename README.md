@@ -103,7 +103,8 @@ npm test
 
 An end-to-end test (Playwright) drives a real browser through the critical path: log in, sell a
 product, find the sale in the history, log out. It also checks that the session cookie is httpOnly, that
-no token is kept in `localStorage`, and that the API answers 401 after logout. It starts its own backend
+no token is kept in `localStorage`, and that the API answers 401 after logout. A second one checks that
+paging the sales history asks the API exactly once per click. It starts its own backend
 (port 8081) and production build of the frontend (port 3100) against a separate `kiosco_e2e` database, so
 development data is never touched:
 

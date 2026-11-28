@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { isAxiosError } from 'axios';
 import { categoryService } from '@/services/categoryService';
 import { productService } from '@/services/productService';
@@ -14,17 +14,50 @@ import { notifyLowStock } from '@/lib/notifications';
 import { isAdmin, useCurrentUser } from '@/lib/session';
 import type { Product } from '@/types/product';
 import type { TopSeller } from '@/types/sale';
+import { useApiData } from '@/hooks/useApiData';
+
+interface DashboardData {
+  todaySales: number;
+  productCount: number;
+  categoryCount: number;
+  lowStock: Product[];
+  topSellers: TopSeller[];
+}
+
+const EMPTY_DASHBOARD: DashboardData = {
+  todaySales: 0,
+  productCount: 0,
+  categoryCount: 0,
+  lowStock: [],
+  topSellers: [],
+};
+
+/** Todo lo que muestra el panel, en paralelo. Si hay productos por agotarse, lo avisa. */
+async function fetchDashboard(): Promise<DashboardData> {
+  const [products, categories, summary, topSellers, lowStock] = await Promise.all([
+    productService.findAll(),
+    categoryService.findAll(),
+    saleService.getSummary(todayInKiosk()),
+    saleService.findTopSellers(),
+    productService.findLowStock(),
+  ]);
+  notifyLowStock(lowStock.length);
+  return {
+    todaySales: summary.grandTotal,
+    productCount: products.length,
+    categoryCount: categories.length,
+    lowStock,
+    topSellers,
+  };
+}
 
 
 export default function Home() {
-  const [stats, setStats] = useState({
-    todaySales: 0,
-    productCount: 0,
-    categoryCount: 0
+  // AuthGuard ya garantiza que hay sesión: acá solo queda cargar los datos.
+  const { data: dashboard, loading, reload } = useApiData(fetchDashboard, EMPTY_DASHBOARD, {
+    errorMessage: 'No se pudo cargar el panel',
   });
-  const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
-  const [topSellers, setTopSellers] = useState<TopSeller[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { lowStock: lowStockProducts, topSellers } = dashboard;
   // Reponer stock desde las alertas es de admin; el backend lo exige con 403 igual.
   const canRestock = isAdmin(useCurrentUser());
   
@@ -50,7 +83,7 @@ export default function Home() {
       await productService.update(product.id, updatedProduct);
 
       // El backend decide qué es stock bajo: si con la reposición dejó de serlo, sale de la lista.
-      setLowStockProducts(await productService.findLowStock());
+      await reload();
       
       toast.success(`${product.name} reabastecido (+${editStockValue}). Total: ${newTotalStock}`);
       setEditingProductId(null);
@@ -62,39 +95,6 @@ export default function Home() {
       } else {
         toast.error('Error al actualizar el stock');
       }
-    }
-  };
-
-  // AuthGuard ya garantiza que hay sesión: acá solo queda cargar los datos.
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      const today = todayInKiosk();
-      const [products, categories, summary, topSellers, lowStock] = await Promise.all([
-        productService.findAll(),
-        categoryService.findAll(),
-        saleService.getSummary(today),
-        saleService.findTopSellers(),
-        productService.findLowStock()
-      ]);
-
-
-      setStats({
-        productCount: products.length,
-        categoryCount: categories.length,
-        todaySales: summary.grandTotal
-      });
-      setLowStockProducts(lowStock);
-      setTopSellers(topSellers);
-
-      notifyLowStock(lowStock.length);
-    } catch (err) {
-      console.error('Error fetching dashboard stats', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -124,7 +124,7 @@ export default function Home() {
             <DollarSign size={100} />
           </div>
           <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ventas de Hoy</h3>
-          <p className="text-4xl font-black text-orange-600 dark:text-orange-500 mt-2">{formatCurrency(stats.todaySales)}</p>
+          <p className="text-4xl font-black text-orange-600 dark:text-orange-500 mt-2">{formatCurrency(dashboard.todaySales)}</p>
           <div className="mt-4 flex items-center text-xs font-bold text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 px-2 py-1 rounded-full w-fit">
             Actualizado en vivo
           </div>
@@ -135,7 +135,7 @@ export default function Home() {
             <Package size={100} />
           </div>
           <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Productos</h3>
-          <p className="text-4xl font-black text-blue-600 dark:text-blue-500 mt-2">{stats.productCount}</p>
+          <p className="text-4xl font-black text-blue-600 dark:text-blue-500 mt-2">{dashboard.productCount}</p>
           <div className="mt-4 flex items-center text-xs font-bold text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-full w-fit">
             En el catálogo
           </div>
@@ -146,7 +146,7 @@ export default function Home() {
             <Tag size={100} />
           </div>
           <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categorías</h3>
-          <p className="text-4xl font-black text-green-600 dark:text-green-500 mt-2">{stats.categoryCount}</p>
+          <p className="text-4xl font-black text-green-600 dark:text-green-500 mt-2">{dashboard.categoryCount}</p>
           <div className="mt-4 flex items-center text-xs font-bold text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-1 rounded-full w-fit">
             Organizadas
           </div>
