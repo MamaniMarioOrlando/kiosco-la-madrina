@@ -34,6 +34,9 @@ api.interceptors.response.use(
         if (error.response?.status === 401 && !isLoginRequest) {
             if (typeof window !== 'undefined') {
                 clearSession();
+                // A propósito y no router.push(): el interceptor vive fuera de React (no hay router), y una
+                // recarga completa descarta cualquier estado en memoria de la sesión vencida.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                 window.location.href = '/login';
             }
         }
