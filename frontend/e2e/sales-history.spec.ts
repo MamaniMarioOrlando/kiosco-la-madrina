@@ -28,14 +28,18 @@ test('the sales history asks the API once per page change and once per view chan
   await seedNineSalesToday(request);
 
   // Cada pedido de una página del historial que hace el navegador (pasa por el proxy /api).
+  const isHistoryPage = (url: string) => new URL(url).pathname === '/api/sales';
   const historyRequests: string[] = [];
   page.on('request', (req) => {
-    if (new URL(req.url()).pathname === '/api/sales') historyRequests.push(req.url());
+    if (isHistoryPage(req.url())) historyRequests.push(req.url());
   });
+  // Espera la RESPUESTA, no el texto: "Página 2" se dibuja con lo pedido, antes de que salga el pedido.
+  // Un pedido duplicado sale en el mismo render que el primero, así que ya está contado cuando este responde.
   const requestsDuring = async (action: () => Promise<void>) => {
     const before = historyRequests.length;
+    const response = page.waitForResponse((res) => isHistoryPage(res.url()));
     await action();
-    await page.waitForLoadState('networkidle');
+    await response;
     return historyRequests.slice(before);
   };
 
